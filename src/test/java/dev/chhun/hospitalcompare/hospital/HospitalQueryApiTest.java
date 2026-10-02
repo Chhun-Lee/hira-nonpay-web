@@ -102,6 +102,14 @@ class HospitalQueryApiTest {
 	}
 
 	@Test
+	void XML만_받겠다고_하면_406() {
+		assertThat(mvc.get().uri("/api/hospitals")
+				.param("lat", "37.5").param("lng", "127.0").param("radius", "500")
+				.header(HttpHeaders.ACCEPT, MediaType.APPLICATION_XML_VALUE))
+				.hasStatus(HttpStatus.NOT_ACCEPTABLE);
+	}
+
+	@Test
 	void 위경도가_없으면_400() {
 		assertThat(mvc.get().uri("/api/hospitals").param("radius", "500"))
 				.hasStatus(HttpStatus.BAD_REQUEST)
