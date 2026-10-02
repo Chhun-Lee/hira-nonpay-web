@@ -8,3 +8,7 @@ hira:
   base-url: https://apis.data.go.kr/B551182
   # 공공데이터포털 일반 인증키(Decoding). 클라이언트가 인코딩하므로 Encoding 키를 넣으면 이중 인코딩된다.
   service-key: ${HIRA_SERVICE_KEY}
+
+collector:
+  # 목록 API 한 페이지 크기. 허용 최대값은 아직 확인하지 못했다(활용가이드 확인 필요).
+  num-of-rows: 100

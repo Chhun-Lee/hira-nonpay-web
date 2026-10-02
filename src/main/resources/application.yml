@@ -8,6 +8,10 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      data-source-properties:
+        # JDBC batch를 다중 행 INSERT 하나로 묶어 보낸다. 끄면 Connector/J가 행마다 따로 보낸다.
+        rewriteBatchedStatements: true
   jpa:
     # 스키마의 유일한 기준은 엔티티다(Flyway·schema.sql 없음).
     hibernate:
