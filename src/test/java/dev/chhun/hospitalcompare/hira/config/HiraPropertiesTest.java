@@ -3,6 +3,7 @@ package dev.chhun.hospitalcompare.hira.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
@@ -24,6 +25,17 @@ class HiraPropertiesTest {
 		HiraProperties properties = new HiraProperties("https://apis.data.go.kr/B551182", "fake+Key/For==Test");
 
 		assertThat(properties.toString()).doesNotContain("fake+Key/For==Test");
+	}
+
+	@Test
+	void 두_인자로_만들면_타임아웃과_관문_기본값을_쓴다() {
+		HiraProperties properties = new HiraProperties("https://apis.data.go.kr/B551182", "fake+Key/For==Test");
+
+		assertThat(properties.connectTimeout()).isEqualTo(Duration.ofSeconds(3));
+		assertThat(properties.readTimeout()).isEqualTo(Duration.ofSeconds(10));
+		assertThat(properties.maxConcurrency()).isEqualTo(4);
+		assertThat(properties.requestsPerSecond()).isEqualTo(5);
+		assertThat(properties.retry()).isEqualTo(HiraProperties.Retry.DEFAULT);
 	}
 
 }
