@@ -21,9 +21,16 @@ import dev.chhun.hospitalcompare.hira.dto.HospBasisPage;
 import dev.chhun.hospitalcompare.hira.exception.HiraApiException;
 import dev.chhun.hospitalcompare.hira.exception.HiraException;
 import dev.chhun.hospitalcompare.hira.exception.HiraGatewayException;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -187,6 +194,20 @@ class HiraClientTest {
 	}
 
 	@Test
+	void 본문을_받다가_연결이_끊겨도_재시도할_수_있는_실패다() throws IOException {
+		// 상태 줄과 헤더가 온 뒤 본문을 다 받기 전에 끊긴다. WireMock 오류 모사는 헤더 전에 끊어서 소켓으로 직접 응답한다.
+		// 이때 RestClient는 ResourceAccessException이 아닌 RestClientException으로 감싼다.
+		try (ServerSocket server = new ServerSocket(0, 1, InetAddress.getByName("127.0.0.1"))) {
+			Thread.ofVirtual().start(() -> truncateResponse(server));
+			HiraProperties properties = new HiraProperties("http://127.0.0.1:" + server.getLocalPort(), SERVICE_KEY);
+			HiraClient truncatedClient = new HiraClient(RestClient.builder(), properties);
+
+			assertThatThrownBy(() -> truncatedClient.getHospBasisList("110001", 1, 2))
+					.isInstanceOfSatisfying(HiraException.class, e -> assertThat(e.isRetryable()).isTrue());
+		}
+	}
+
+	@Test
 	void 시군구를_주지_않으면_전국으로_요청한다() throws IOException {
 		respondWith("hosp-basis-list-page1.xml");
 
@@ -253,6 +274,23 @@ class HiraClientTest {
 				.withStatus(status)
 				.withHeader("Content-Type", "application/xml;charset=UTF-8")
 				.withBody(body)));
+	}
+
+	/** 요청을 읽고 Content-Length보다 짧은 본문을 보낸 채 연결을 닫는다. */
+	private static void truncateResponse(ServerSocket server) {
+		try (Socket socket = server.accept()) {
+			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+			String line;
+			while ((line = in.readLine()) != null && !line.isEmpty()) {
+				// 요청 헤더 끝까지 읽는다.
+			}
+			OutputStream out = socket.getOutputStream();
+			String truncated = "HTTP/1.1 200 OK\r\nContent-Type: application/xml\r\nContent-Length: 1000\r\n\r\n<response>";
+			out.write(truncated.getBytes(StandardCharsets.UTF_8));
+			out.flush();
+		} catch (IOException e) {
+			// 클라이언트가 먼저 끊어도 테스트에는 영향이 없다.
+		}
 	}
 
 	private static String stackTraceOf(Throwable throwable) {

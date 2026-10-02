@@ -8,6 +8,7 @@ import dev.chhun.hospitalcompare.hira.exception.HiraApiException;
 import dev.chhun.hospitalcompare.hira.exception.HiraException;
 import dev.chhun.hospitalcompare.hira.exception.HiraGatewayException;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.http.HttpClient;
 import java.util.HashMap;
 import java.util.Map;
@@ -115,9 +116,9 @@ public class HiraClient {
 					.toEntity(byte[].class);
 		} catch (RestClientException e) {
 			// RestClient 예외 메시지에는 서비스 키가 든 요청 URL이 있어 원인 예외로 붙이지 않는다.
-			// 연결 실패·타임아웃(ResourceAccessException)은 잠시 뒤 다시 보내면 풀릴 수 있다.
+			// 연결 실패·타임아웃 같은 I/O 실패는 잠시 뒤 다시 보내면 풀릴 수 있다.
 			throw new HiraException(request + " 호출 실패: " + maskServiceKey(e.getMostSpecificCause().toString()),
-					e instanceof ResourceAccessException);
+					isIoFailure(e));
 		}
 
 		byte[] body = response.getBody() == null ? new byte[0] : response.getBody();
@@ -140,6 +141,22 @@ public class HiraClient {
 			throw new HiraException(request + " 알 수 없는 응답 형식(루트 요소 " + root + ")");
 		}
 		return body;
+	}
+
+	/**
+	 * 요청을 보내다 실패하면 ResourceAccessException으로 오지만, 상태 줄과 헤더가 온 뒤 본문을 읽다가 끊기거나
+	 * 읽기 제한을 넘으면 RestClient가 일반 RestClientException으로 감싼다. 원인에 IOException이 있으면 같은 I/O 실패로 본다.
+	 */
+	private static boolean isIoFailure(RestClientException e) {
+		if (e instanceof ResourceAccessException) {
+			return true;
+		}
+		for (Throwable cause = e.getCause(); cause != null; cause = cause.getCause()) {
+			if (cause instanceof IOException) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private <T> T parse(String request, byte[] body, Class<T> type) {
