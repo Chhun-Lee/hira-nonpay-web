@@ -10,7 +10,8 @@
   <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-<div class="page" id="app" th:data-max-results="${maxResults}">
+<div class="page" id="app" th:data-max-results="${maxResults}"
+     th:data-kakao-sdk="@{https://dapi.kakao.com/v2/maps/sdk.js(appkey=${kakaoMapKey},autoload=false)}">
 
   <header class="head">
     <div class="brand">
@@ -72,8 +73,6 @@
   </footer>
 
 </div>
-<script th:src="@{https://dapi.kakao.com/v2/maps/sdk.js(appkey=${kakaoMapKey},autoload=false)}"
-        onerror="document.getElementById('map-error').hidden = false"></script>
 <script type="module" th:src="@{/js/app.js}"></script>
 </body>
 </html>

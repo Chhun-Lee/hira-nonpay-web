@@ -43,6 +43,16 @@ class HospitalPageTest {
 	}
 
 	@Test
+	void 카카오_SDK는_페이지_파싱을_막지_않도록_JS가_따로_불러온다() {
+		// <script src>로 직접 넣으면 SDK 서버가 응답하지 않는 동안 화면 스크립트 전체가 시작하지 못한다.
+		assertThat(mvc.get().uri("/").header(HttpHeaders.ACCEPT, BROWSER_ACCEPT))
+				.hasStatusOk()
+				.bodyText()
+				.contains("data-kakao-sdk=\"https://dapi.kakao.com/v2/maps/sdk.js?appkey=test-kakao-key")
+				.doesNotContain("<script src=\"https://dapi.kakao.com");
+	}
+
+	@Test
 	void active_스냅샷이_없으면_기준일은_수집_전() {
 		jdbcTemplate.update("delete from snapshot");
 

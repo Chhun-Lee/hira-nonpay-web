@@ -1,5 +1,6 @@
 // 화면 상태와 이벤트 연결. 검색 중심·반경·종별을 기준으로 목록과 지도를 다시 그린다.
 import { fetchRegions, searchHospitals } from './api.js';
+import { loadKakaoSdk } from './kakao-sdk.js';
 import { createListView } from './list-view.js';
 import { createMapView } from './map-view.js';
 
@@ -16,7 +17,7 @@ const clCdGroup = document.getElementById('cl-cd');
 const searchHereButton = document.getElementById('search-here');
 const mapError = document.getElementById('map-error');
 
-const state = { center: FALLBACK_CENTER, radius: 1000, clCd: '', regions: [] };
+const state = { center: FALLBACK_CENTER, radius: 1000, clCd: '', regions: [], hospitals: [] };
 let map = null;
 let latestSearchId = 0;
 
@@ -42,12 +43,14 @@ async function search() {
     if (searchId !== latestSearchId) {
       return; // 더 최근 검색이 있으면 늦게 온 응답은 버린다
     }
-    list.render({ hospitals: result.hospitals, radius: state.radius, maxResults });
-    map?.showHospitals(result.hospitals);
+    state.hospitals = result.hospitals;
+    list.render({ hospitals: state.hospitals, radius: state.radius, maxResults });
+    map?.showHospitals(state.hospitals);
   } catch {
     if (searchId !== latestSearchId) {
       return;
     }
+    state.hospitals = [];
     list.showError(LOAD_ERROR);
     map?.showHospitals([]);
   }
@@ -153,26 +156,24 @@ function startMap() {
   });
 }
 
-async function start() {
-  await loadRegions();
-  if (!window.kakao?.maps) {
+// 지도는 목록 검색과 따로 준비한다. 준비되면 그때까지의 검색 범위와 결과를 지도에 그린다.
+async function loadMap() {
+  try {
+    await loadKakaoSdk(root.dataset.kakaoSdk, MAP_LOAD_TIMEOUT_MS);
+    startMap();
+  } catch {
+    map = null;
     mapError.hidden = false;
-    search(); // 지도 없이도 목록 검색은 된다
     return;
   }
-  // SDK가 받아졌어도 키·도메인 문제로 load 콜백이 오지 않을 수 있다.
-  const timeout = setTimeout(() => {
-    if (!map) {
-      mapError.hidden = false;
-      search();
-    }
-  }, MAP_LOAD_TIMEOUT_MS);
-  window.kakao.maps.load(() => {
-    clearTimeout(timeout);
-    mapError.hidden = true;
-    startMap();
-    search();
-  });
+  map.setSearchArea(state.center, state.radius);
+  map.showHospitals(state.hospitals);
+}
+
+async function start() {
+  loadMap(); // 기다리지 않는다: 지도 SDK가 늦거나 실패해도 목록 검색은 바로 시작한다
+  await loadRegions();
+  search();
 }
 
 start();
