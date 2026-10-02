@@ -17,10 +17,13 @@ public class HospitalQueryService {
 
 	private final SnapshotRepository snapshotRepository;
 	private final HospitalQueryRepository hospitalQueryRepository;
+	private final RegionQueryRepository regionQueryRepository;
 
-	public HospitalQueryService(SnapshotRepository snapshotRepository, HospitalQueryRepository hospitalQueryRepository) {
+	public HospitalQueryService(SnapshotRepository snapshotRepository, HospitalQueryRepository hospitalQueryRepository,
+			RegionQueryRepository regionQueryRepository) {
 		this.snapshotRepository = snapshotRepository;
 		this.hospitalQueryRepository = hospitalQueryRepository;
+		this.regionQueryRepository = regionQueryRepository;
 	}
 
 	public HospitalSearchResponse searchNearby(double latitude, double longitude, int radiusMeters, String clCd) {
@@ -34,6 +37,12 @@ public class HospitalQueryService {
 	public Optional<SnapshotResponse> activeSnapshot() {
 		return snapshotRepository.findByStatus(SnapshotStatus.ACTIVE)
 				.map(snapshot -> new SnapshotResponse(snapshot.getBaseDate(), snapshot.getRecordCount()));
+	}
+
+	public List<RegionResponse> regions() {
+		return snapshotRepository.findByStatus(SnapshotStatus.ACTIVE)
+				.map(snapshot -> regionQueryRepository.findRegions(snapshot.getId()))
+				.orElseGet(List::of);
 	}
 
 }

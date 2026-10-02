@@ -2,20 +2,16 @@ package dev.chhun.hospitalcompare.hospital;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import dev.chhun.hospitalcompare.TestcontainersConfiguration;
+import dev.chhun.hospitalcompare.ApiIntegrationTest;
 import java.util.List;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
 /**
@@ -23,10 +19,7 @@ import org.springframework.test.web.servlet.assertj.MockMvcTester;
  * 가까운의원 약 100m(북), 종합병원 약 300m(동)은 반경 안이다.
  * 모서리의원(약 627m)은 바운딩 박스에는 들지만 반경 밖이고, 먼병원·좌표없는의원·다른 스냅샷 행은 빠져야 한다.
  */
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("api")
-@Import(TestcontainersConfiguration.class)
+@ApiIntegrationTest
 class HospitalQueryApiTest {
 
 	private static final String BROWSER_ACCEPT = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";

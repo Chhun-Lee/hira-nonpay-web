@@ -2,19 +2,12 @@ package dev.chhun.hospitalcompare.global;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import dev.chhun.hospitalcompare.TestcontainersConfiguration;
+import dev.chhun.hospitalcompare.ApiIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("api")
-@Import(TestcontainersConfiguration.class)
+@ApiIntegrationTest
 class ApiDocsTest {
 
 	@Autowired
