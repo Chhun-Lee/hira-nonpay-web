@@ -3,6 +3,7 @@ package dev.chhun.hospitalcompare.hospital.repository;
 import dev.chhun.hospitalcompare.hospital.dto.HospitalRecord;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -74,6 +75,16 @@ public class HospitalUpsertRepository {
 		Long count = jdbcTemplate.queryForObject(
 				"SELECT COUNT(*) FROM hospital WHERE snapshot_id = ?", Long.class, snapshotId);
 		return count == null ? 0 : count;
+	}
+
+	/** 지정한 스냅샷들의 병원 행을 지운다. */
+	@Transactional
+	public int deleteBySnapshotIds(Collection<Long> snapshotIds) {
+		int deleted = 0;
+		for (Long snapshotId : snapshotIds) {
+			deleted += jdbcTemplate.update("DELETE FROM hospital WHERE snapshot_id = ?", snapshotId);
+		}
+		return deleted;
 	}
 
 }

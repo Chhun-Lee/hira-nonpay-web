@@ -36,6 +36,10 @@ public class Snapshot {
 	@Column(nullable = false)
 	private int recordCount;
 
+	/** FAILED가 된 이유 */
+	@Column(length = 500)
+	private String failureReason;
+
 	protected Snapshot() {
 	}
 
@@ -48,6 +52,22 @@ public class Snapshot {
 	public void markCollected(LocalDate baseDate, int recordCount) {
 		this.baseDate = baseDate;
 		this.recordCount = recordCount;
+	}
+
+	/** 검증을 통과한 STAGE를 화면용으로 바꾼다. */
+	public void activate(int recordCount) {
+		this.status = SnapshotStatus.ACTIVE;
+		this.recordCount = recordCount;
+		this.failureReason = null;
+	}
+
+	public void retire() {
+		this.status = SnapshotStatus.RETIRED;
+	}
+
+	public void fail(String reason) {
+		this.status = SnapshotStatus.FAILED;
+		this.failureReason = reason == null || reason.length() <= 500 ? reason : reason.substring(0, 500);
 	}
 
 	public Long getId() {
@@ -64,6 +84,10 @@ public class Snapshot {
 
 	public int getRecordCount() {
 		return recordCount;
+	}
+
+	public String getFailureReason() {
+		return failureReason;
 	}
 
 }
