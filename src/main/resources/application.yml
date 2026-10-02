@@ -13,7 +13,3 @@ spring:
     hibernate:
       ddl-auto: update
     open-in-view: false
-
-hira:
-  # 공공데이터포털 일반 인증키(Decoding). 클라이언트가 인코딩하므로 Encoding 키를 넣으면 이중 인코딩된다.
-  service-key: ${HIRA_SERVICE_KEY}

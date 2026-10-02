@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<response>
+    <header>
+        <resultCode>00</resultCode>
+        <resultMsg>NORMAL SERVICE.</resultMsg>
+    </header>
+    <body>
+        <items>
+            <item>
+                <addr>서울특별시 강남구 가상로 303 (대치동)</addr>
+                <clCd>51</clCd>
+                <clCdNm>치과의원</clCdNm>
+                <cmdcGdrCnt>0</cmdcGdrCnt>
+                <cmdcIntnCnt>0</cmdcIntnCnt>
+                <cmdcResdntCnt>0</cmdcResdntCnt>
+                <cmdcSdrCnt>0</cmdcSdrCnt>
+                <detyGdrCnt>0</detyGdrCnt>
+                <detyIntnCnt>0</detyIntnCnt>
+                <detyResdntCnt>0</detyResdntCnt>
+                <detySdrCnt>1</detySdrCnt>
+                <drTotCnt>1</drTotCnt>
+                <emdongNm>대치동</emdongNm>
+                <estbDd>20230102</estbDd>
+                <mdeptGdrCnt>0</mdeptGdrCnt>
+                <mdeptIntnCnt>0</mdeptIntnCnt>
+                <mdeptResdntCnt>0</mdeptResdntCnt>
+                <mdeptSdrCnt>0</mdeptSdrCnt>
+                <pnursCnt>0</pnursCnt>
+                <postNo>06200</postNo>
+                <sgguCd>110001</sgguCd>
+                <sgguCdNm>강남구</sgguCdNm>
+                <sidoCd>110000</sidoCd>
+                <sidoCdNm>서울</sidoCdNm>
+                <telno>02-0000-0003</telno>
+                <yadmNm>가상치과의원</yadmNm>
+                <ykiho>RklYVFVSRS1ZS0lITy0wMDAzLWdhc2FuZy1jaGlnd2EtdWl3b24=</ykiho>
+            </item>
+        </items>
+        <numOfRows>2</numOfRows>
+        <pageNo>2</pageNo>
+        <totalCount>3</totalCount>
+    </body>
+</response>

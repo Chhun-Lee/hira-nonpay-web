@@ -2,3 +2,9 @@
 spring:
   main:
     web-application-type: none
+
+# 심평원 API는 collector만 호출한다. api 서버는 서비스 키 없이 뜬다.
+hira:
+  base-url: https://apis.data.go.kr/B551182
+  # 공공데이터포털 일반 인증키(Decoding). 클라이언트가 인코딩하므로 Encoding 키를 넣으면 이중 인코딩된다.
+  service-key: ${HIRA_SERVICE_KEY}
