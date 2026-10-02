@@ -104,7 +104,7 @@ public class HospitalCollector {
 		return new CollectResult(sgguCd == null ? "전국" : sgguCd, stage.getId(), status, failure,
 				stats.calls(), stats.retries(), stats.perSecondLimited(),
 				Duration.ofNanos(System.nanoTime() - started),
-				Duration.ofNanos(run.apiNanos.sum()), Duration.ofNanos(run.dbNanos.sum()),
+				Duration.ofNanos(stats.callNanos()), Duration.ofNanos(run.dbNanos.sum()),
 				run.totalCount, run.received.get(), loaded, deleted,
 				qualityIssueRepository.countBySnapshot(stage.getId()));
 	}
@@ -116,7 +116,6 @@ public class HospitalCollector {
 		private final String sgguCd;
 		private final AtomicInteger received = new AtomicInteger();
 		private final AtomicInteger missingRequired = new AtomicInteger();
-		private final LongAdder apiNanos = new LongAdder();
 		private final LongAdder dbNanos = new LongAdder();
 		private int totalCount;
 
@@ -178,12 +177,7 @@ public class HospitalCollector {
 		}
 
 		private HospBasisPage fetch(int pageNo, int size) {
-			long started = System.nanoTime();
-			try {
-				return hiraClient.getHospBasisList(sgguCd, pageNo, size);
-			} finally {
-				apiNanos.add(System.nanoTime() - started);
-			}
+			return hiraClient.getHospBasisList(sgguCd, pageNo, size);
 		}
 
 		private void store(HospBasisPage page) {

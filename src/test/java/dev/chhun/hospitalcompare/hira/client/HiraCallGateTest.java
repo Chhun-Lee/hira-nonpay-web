@@ -36,7 +36,10 @@ class HiraCallGateTest {
 
 		assertThat(result).isEqualTo("ok");
 		assertThat(attempts).hasValue(3);
-		assertThat(gate.stats()).isEqualTo(new HiraCallGate.Stats(3, 2, 0));
+		HiraCallGate.Stats stats = gate.stats();
+		assertThat(stats.calls()).isEqualTo(3);
+		assertThat(stats.retries()).isEqualTo(2);
+		assertThat(stats.perSecondLimited()).isZero();
 	}
 
 	@Test
@@ -96,6 +99,47 @@ class HiraCallGateTest {
 		}
 
 		assertThat(maxInFlight.get()).isEqualTo(2);
+	}
+
+	@Test
+	void 호출_시간은_재시도_백오프를_빼고_실제_호출_구간만_잰다() {
+		// 백오프는 지터를 빼도 300ms 이상이라, 호출 2번(각 50ms)의 합과 뚜렷이 갈린다.
+		HiraCallGate slowBackoff = new HiraCallGate(2, RateLimiter.perSecond(1000),
+				new HiraProperties.Retry(3, Duration.ofMillis(600), Duration.ofSeconds(5)));
+		AtomicInteger attempts = new AtomicInteger();
+
+		slowBackoff.call(() -> {
+			sleep(50);
+			if (attempts.incrementAndGet() == 1) {
+				throw new HiraException("일시 오류", true);
+			}
+			return "ok";
+		});
+
+		Duration callTime = Duration.ofNanos(slowBackoff.stats().callNanos());
+		assertThat(callTime).isGreaterThanOrEqualTo(Duration.ofMillis(100)).isLessThan(Duration.ofMillis(250));
+	}
+
+	@Test
+	void 호출_시간은_동시_실행_수_대기를_뺀다() throws Exception {
+		HiraCallGate single = new HiraCallGate(1, RateLimiter.perSecond(1000), FAST_RETRY);
+		List<Future<String>> futures = new ArrayList<>();
+
+		try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+			for (int i = 0; i < 2; i++) {
+				futures.add(executor.submit(() -> single.call(() -> {
+					sleep(200);
+					return "ok";
+				})));
+			}
+			for (Future<String> future : futures) {
+				future.get();
+			}
+		}
+
+		// 두 번째 호출은 첫 번째가 끝나기를 200ms 기다린다. 그 대기가 들어가면 600ms에 가까워진다.
+		Duration callTime = Duration.ofNanos(single.stats().callNanos());
+		assertThat(callTime).isGreaterThanOrEqualTo(Duration.ofMillis(400)).isLessThan(Duration.ofMillis(500));
 	}
 
 	private static void sleep(long millis) {

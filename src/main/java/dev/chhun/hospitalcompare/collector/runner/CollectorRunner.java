@@ -36,7 +36,7 @@ class CollectorRunner implements ApplicationRunner {
 		}
 
 		CollectResult result = hospitalCollector.collect(sgguCds == null ? null : sgguCds.getFirst());
-		log.info("수집 {} 범위={} 스냅샷={} | 호출 {}회(재시도 {}, 초당 한도 {}) | 소요 {}ms(API 합 {}ms, DB 합 {}ms)"
+		log.info("수집 {} 범위={} 스냅샷={} | 호출 {}회(재시도 {}, 초당 한도 {}) | 소요 {}ms(API 응답 합 {}ms, DB 합 {}ms)"
 						+ " | 전체 {}건, 수신 {}건, 적재 {}건, 정리 {}행 | 품질 이슈 {}",
 				result.succeeded() ? "완료" : "실패", result.scope(), result.snapshotId(),
 				result.calls(), result.retries(), result.perSecondLimited(),

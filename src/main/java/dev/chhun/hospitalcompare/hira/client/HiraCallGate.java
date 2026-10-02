@@ -25,6 +25,7 @@ public class HiraCallGate {
 	private final LongAdder calls = new LongAdder();
 	private final LongAdder retries = new LongAdder();
 	private final LongAdder perSecondLimited = new LongAdder();
+	private final LongAdder callNanos = new LongAdder();
 
 	public HiraCallGate(int maxConcurrency, RateLimiter rateLimiter, HiraProperties.Retry retry) {
 		this.concurrency = new Semaphore(maxConcurrency);
@@ -71,7 +72,13 @@ public class HiraCallGate {
 		try {
 			rateLimiter.acquire();
 			calls.increment();
-			return call.get();
+			// 실제로 요청을 보내고 받는 구간만 잰다. 위의 동시 실행·초당 제한 대기와 재시도 백오프는 뺀다.
+			long started = System.nanoTime();
+			try {
+				return call.get();
+			} finally {
+				callNanos.add(System.nanoTime() - started);
+			}
 		} catch (HiraGatewayException e) {
 			if (e.isPerSecondLimitExceeded()) {
 				perSecondLimited.increment();
@@ -84,18 +91,20 @@ public class HiraCallGate {
 
 	/** 지금까지의 누적 지표 */
 	public Stats stats() {
-		return new Stats(calls.sum(), retries.sum(), perSecondLimited.sum());
+		return new Stats(calls.sum(), retries.sum(), perSecondLimited.sum(), callNanos.sum());
 	}
 
 	/**
 	 * @param calls            실제로 보낸 요청 수(재시도 포함)
 	 * @param retries          재시도 수
 	 * @param perSecondLimited 초당 한도(23)로 거절된 수
+	 * @param callNanos        실제 HTTP 호출에 걸린 시간의 합(ns). 관문 대기·재시도 백오프는 뺀다.
 	 */
-	public record Stats(long calls, long retries, long perSecondLimited) {
+	public record Stats(long calls, long retries, long perSecondLimited, long callNanos) {
 
 		public Stats minus(Stats before) {
-			return new Stats(calls - before.calls, retries - before.retries, perSecondLimited - before.perSecondLimited);
+			return new Stats(calls - before.calls, retries - before.retries, perSecondLimited - before.perSecondLimited,
+					callNanos - before.callNanos);
 		}
 
 	}
