@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<response>
+    <header>
+        <resultCode>00</resultCode>
+        <resultMsg>NORMAL SERVICE.</resultMsg>
+    </header>
+    <body>
+        <items>
+            <item>
+                <addr>서울특별시 강남구 가상로 101 (역삼동)</addr>
+                <clCd>11</clCd>
+                <clCdNm>종합병원</clCdNm>
+                <cmdcGdrCnt>0</cmdcGdrCnt>
+                <cmdcIntnCnt>0</cmdcIntnCnt>
+                <cmdcResdntCnt>0</cmdcResdntCnt>
+                <cmdcSdrCnt>0</cmdcSdrCnt>
+                <detyGdrCnt>1</detyGdrCnt>
+                <detyIntnCnt>0</detyIntnCnt>
+                <detyResdntCnt>0</detyResdntCnt>
+                <detySdrCnt>2</detySdrCnt>
+                <drTotCnt>152</drTotCnt>
+                <emdongNm>역삼동</emdongNm>
+                <estbDd>19950301</estbDd>
+                <hospUrl>http://www.example.com</hospUrl>
+                <mdeptGdrCnt>12</mdeptGdrCnt>
+                <mdeptIntnCnt>20</mdeptIntnCnt>
+                <mdeptResdntCnt>38</mdeptResdntCnt>
+                <mdeptSdrCnt>79</mdeptSdrCnt>
+                <pnursCnt>0</pnursCnt>
+                <postNo>06200</postNo>
+                <sgguCd>110001</sgguCd>
+                <sgguCdNm>강남구</sgguCdNm>
+                <sidoCd>110000</sidoCd>
+                <sidoCdNm>서울</sidoCdNm>
+                <telno>02-0000-0001</telno>
+                <XPos>127.0365123456789</XPos>
+                <YPos>37.5006123456789</YPos>
+                <yadmNm>가상종합병원</yadmNm>
+                <ykiho>RklYVFVSRS1ZS0lITy0wMDAxLWdhc2FuZy1qb25naGFwLWJ5ZW9ud29u</ykiho>
+            </item>
+            <item>
+                <addr>서울특별시 강남구 가상로 202, 3층 (논현동)</addr>
+                <clCd>31</clCd>
+                <clCdNm>의원</clCdNm>
+                <cmdcGdrCnt>0</cmdcGdrCnt>
+                <cmdcIntnCnt>0</cmdcIntnCnt>
+                <cmdcResdntCnt>0</cmdcResdntCnt>
+                <cmdcSdrCnt>0</cmdcSdrCnt>
+                <detyGdrCnt>0</detyGdrCnt>
+                <detyIntnCnt>0</detyIntnCnt>
+                <detyResdntCnt>0</detyResdntCnt>
+                <detySdrCnt>0</detySdrCnt>
+                <drTotCnt>1</drTotCnt>
+                <emdongNm>논현동</emdongNm>
+                <estbDd>20180615</estbDd>
+                <mdeptGdrCnt>0</mdeptGdrCnt>
+                <mdeptIntnCnt>0</mdeptIntnCnt>
+                <mdeptResdntCnt>0</mdeptResdntCnt>
+                <mdeptSdrCnt>1</mdeptSdrCnt>
+                <pnursCnt>0</pnursCnt>
+                <postNo>06100</postNo>
+                <sgguCd>110001</sgguCd>
+                <sgguCdNm>강남구</sgguCdNm>
+                <sidoCd>110000</sidoCd>
+                <sidoCdNm>서울</sidoCdNm>
+                <telno>02-0000-0002</telno>
+                <XPos>127.0281654321098</XPos>
+                <YPos>37.5110654321098</YPos>
+                <yadmNm>가상내과의원</yadmNm>
+                <ykiho>RklYVFVSRS1ZS0lITy0wMDAyLWdhc2FuZy1uYWVnd2EtdWl3b24=</ykiho>
+            </item>
+        </items>
+        <numOfRows>2</numOfRows>
+        <pageNo>1</pageNo>
+        <totalCount>10</totalCount>
+    </body>
+</response>
