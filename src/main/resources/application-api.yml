@@ -1,4 +1,10 @@
 # 상시 실행하는 조회 API 서버. active 스냅샷만 읽는다.
+spring:
+  mvc:
+    problemdetails:
+      # 오류 응답을 RFC 9457 형식(application/problem+json)으로
+      enabled: true
+
 management:
   endpoints:
     web:
