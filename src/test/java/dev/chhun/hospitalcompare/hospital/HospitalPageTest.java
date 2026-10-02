@@ -52,6 +52,13 @@ class HospitalPageTest {
 	}
 
 	@Test
+	void 화면_스크립트를_내려준다() {
+		assertThat(mvc.get().uri("/js/app.js"))
+				.hasStatusOk()
+				.bodyText().contains("createMapView");
+	}
+
+	@Test
 	void 스타일_파일을_내려준다() {
 		assertThat(mvc.get().uri("/css/app.css"))
 				.hasStatusOk()
