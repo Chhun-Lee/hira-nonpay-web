@@ -1,0 +1,13 @@
+# 로컬 개발. api 또는 collector와 함께 켠다.
+spring:
+  config:
+    # HIRA_SERVICE_KEY 등은 프로젝트 루트의 .env에서 읽는다. OS 환경변수가 있으면 그쪽이 우선한다.
+    import: optional:file:.env[.properties]
+  docker:
+    compose:
+      # bootRun을 끝내도 MySQL은 계속 띄워 둔다(수집 → 조회를 번갈아 실행).
+      lifecycle-management: start-only
+
+logging:
+  level:
+    dev.chhun.hospitalcompare: debug

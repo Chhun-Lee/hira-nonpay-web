@@ -1,0 +1,6 @@
+# 상시 실행하는 조회 API 서버. active 스냅샷만 읽는다.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

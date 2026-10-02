@@ -1,0 +1,4 @@
+# 단발 수집 프로세스. 웹 서버 없이 수집만 하고 종료한다.
+spring:
+  main:
+    web-application-type: none

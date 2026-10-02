@@ -1,0 +1,9 @@
+# 모든 프로파일 공통. 실행 시 api 또는 collector 중 하나를 고르고, 로컬에서는 local을 함께 켠다.
+spring:
+  application:
+    name: hospital-compare
+  jpa:
+    # 스키마의 유일한 기준은 엔티티다(Flyway·schema.sql 없음).
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
