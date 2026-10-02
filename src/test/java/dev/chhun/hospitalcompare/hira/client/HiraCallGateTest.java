@@ -15,7 +15,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 
+@ExtendWith(OutputCaptureExtension.class)
 class HiraCallGateTest {
 
 	private static final HiraProperties.Retry FAST_RETRY =
@@ -140,6 +144,48 @@ class HiraCallGateTest {
 		// 두 번째 호출은 첫 번째가 끝나기를 200ms 기다린다. 그 대기가 들어가면 600ms에 가까워진다.
 		Duration callTime = Duration.ofNanos(single.stats().callNanos());
 		assertThat(callTime).isGreaterThanOrEqualTo(Duration.ofMillis(400)).isLessThan(Duration.ofMillis(500));
+	}
+
+	@Test
+	void 재시도하는_실패는_시도_번호와_사유를_WARN_한_줄로_남긴다(CapturedOutput output) {
+		AtomicInteger attempts = new AtomicInteger();
+
+		gate.call(() -> {
+			if (attempts.incrementAndGet() == 1) {
+				throw new HiraException("getHospBasisList(sgguCd=전국, pageNo=3) 호출 실패: 읽기 시간 초과", true);
+			}
+			return "ok";
+		});
+
+		assertThat(retryLines(output)).singleElement().satisfies(line -> assertThat(line)
+				.contains("WARN", "1/4", "getHospBasisList(sgguCd=전국, pageNo=3) 호출 실패: 읽기 시간 초과"));
+	}
+
+	@Test
+	void 재시도를_다_쓰면_다시_보낼_실패마다_한_줄이고_마지막_실패는_남기지_않는다(CapturedOutput output) {
+		AtomicInteger attempts = new AtomicInteger();
+
+		assertThatThrownBy(() -> gate.call(() -> {
+			throw new HiraException("일시 오류 " + attempts.incrementAndGet(), true);
+		})).isInstanceOf(HiraException.class);
+
+		assertThat(retryLines(output)).hasSize(3);
+		assertThat(retryLines(output).get(0)).contains("1/4", "일시 오류 1");
+		assertThat(retryLines(output).get(2)).contains("3/4", "일시 오류 3");
+		assertThat(output.getOut()).doesNotContain("4/4");
+	}
+
+	@Test
+	void 재시도할_수_없는_실패는_재시도_로그를_남기지_않는다(CapturedOutput output) {
+		assertThatThrownBy(() -> gate.call(() -> {
+			throw new HiraException("요청 오류", false);
+		})).isInstanceOf(HiraException.class);
+
+		assertThat(retryLines(output)).isEmpty();
+	}
+
+	private static List<String> retryLines(CapturedOutput output) {
+		return output.getOut().lines().filter(line -> line.contains("재시도")).toList();
 	}
 
 	private static void sleep(long millis) {

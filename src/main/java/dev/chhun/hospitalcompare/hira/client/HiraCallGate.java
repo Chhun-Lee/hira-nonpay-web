@@ -8,9 +8,14 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.retry.RetryException;
+import org.springframework.core.retry.RetryListener;
 import org.springframework.core.retry.RetryPolicy;
+import org.springframework.core.retry.RetryState;
 import org.springframework.core.retry.RetryTemplate;
+import org.springframework.core.retry.Retryable;
 
 /**
  * 심평원 서비스 하나로 가는 모든 호출의 관문. 동시 실행 수와 초당 호출 수를 제한하고,
@@ -19,6 +24,8 @@ import org.springframework.core.retry.RetryTemplate;
  */
 public class HiraCallGate {
 
+	private static final Logger log = LoggerFactory.getLogger(HiraCallGate.class);
+
 	private final Semaphore concurrency;
 	private final RateLimiter rateLimiter;
 	private final RetryTemplate retryTemplate;
@@ -26,10 +33,12 @@ public class HiraCallGate {
 	private final LongAdder retries = new LongAdder();
 	private final LongAdder perSecondLimited = new LongAdder();
 	private final LongAdder callNanos = new LongAdder();
+	private final int maxAttempts;
 
 	public HiraCallGate(int maxConcurrency, RateLimiter rateLimiter, HiraProperties.Retry retry) {
 		this.concurrency = new Semaphore(maxConcurrency);
 		this.rateLimiter = rateLimiter;
+		this.maxAttempts = retry.maxRetries() + 1;
 		// 지터: 동시에 실패한 요청들이 같은 시각에 다시 몰리지 않게 대기 시간을 흩뜨린다.
 		this.retryTemplate = new RetryTemplate(RetryPolicy.builder()
 				.maxRetries(retry.maxRetries())
@@ -39,6 +48,25 @@ public class HiraCallGate {
 				.jitter(retry.initialDelay().dividedBy(2))
 				.predicate(e -> e instanceof HiraException hira && hira.isRetryable())
 				.build());
+		// 재시도가 로그에 남지 않으면 읽기 제한(30초) × 시도 수 동안 아무 흔적 없이 멈춘 것처럼 보인다.
+		this.retryTemplate.setRetryListener(new RetryListener() {
+			@Override
+			public void onRetryableExecution(RetryPolicy policy, Retryable<?> retryable, RetryState state) {
+				logIfRetrying(policy, state);
+			}
+		});
+	}
+
+	/** 실패한 시도 중 다시 보낼 것만 남긴다. 재시도할 수 없는 실패와 마지막 실패는 호출한 쪽이 예외로 받는다. */
+	private void logIfRetrying(RetryPolicy policy, RetryState state) {
+		if (state.isSuccessful()) {
+			return;
+		}
+		int attempt = state.getRetryCount() + 1;
+		Throwable failure = state.getLastException();
+		if (attempt < maxAttempts && policy.shouldRetry(failure)) {
+			log.warn("심평원 호출 실패로 재시도합니다({}/{}회째 실패): {}", attempt, maxAttempts, failure.getMessage());
+		}
 	}
 
 	public static HiraCallGate create(HiraProperties properties) {
