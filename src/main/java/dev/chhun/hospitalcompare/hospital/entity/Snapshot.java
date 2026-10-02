@@ -2,12 +2,11 @@ package dev.chhun.hospitalcompare.hospital.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import java.time.LocalDate;
+import org.hibernate.annotations.JavaType;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -25,9 +24,10 @@ public class Snapshot {
 	@Column(nullable = false)
 	private LocalDate baseDate;
 
-	// Hibernate는 MySQL에서 enum을 네이티브 ENUM 컬럼으로 만든다. ddl-auto=update는 기존 컬럼을 고치지 않아
-	// 상태가 늘면 INSERT가 실패하므로 VARCHAR로 둔다.
-	@Enumerated(EnumType.STRING)
+	// Hibernate는 enum 컬럼에 값 목록 CHECK 제약을 만들고, ddl-auto=update는 기존 제약을 고치지 않는다.
+	// 그러면 상태를 추가한 뒤 기존 DB에서 INSERT가 실패한다. 평범한 VARCHAR로 저장해 CHECK를 없앴으므로
+	// 상태를 추가해도 DDL 변경이 필요 없다(EnumColumnSchemaTest가 지킨다).
+	@JavaType(SnapshotStatusJavaType.class)
 	@JdbcTypeCode(SqlTypes.VARCHAR)
 	@Column(nullable = false, length = 10)
 	private SnapshotStatus status;

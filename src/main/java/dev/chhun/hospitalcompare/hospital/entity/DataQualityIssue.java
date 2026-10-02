@@ -2,11 +2,10 @@ package dev.chhun.hospitalcompare.hospital.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import org.hibernate.annotations.JavaType;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -28,7 +27,8 @@ public class DataQualityIssue {
 	@Column(length = 128)
 	private String ykiho;
 
-	@Enumerated(EnumType.STRING)
+	// Snapshot.status와 같은 이유로 CHECK 제약이 없는 VARCHAR로 저장한다.
+	@JavaType(QualityIssueTypeJavaType.class)
 	@JdbcTypeCode(SqlTypes.VARCHAR)
 	@Column(nullable = false, length = 40)
 	private QualityIssueType issueType;
