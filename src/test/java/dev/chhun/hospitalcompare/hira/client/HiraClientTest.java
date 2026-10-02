@@ -146,6 +146,37 @@ class HiraClientTest {
 	}
 
 	@Test
+	void HTTP_에러_게이트웨이_오류는_재시도할_수_있다() throws IOException {
+		respondWith("gateway-error-04.xml", 403);
+
+		assertThatThrownBy(() -> client.getHospBasisList("110001", 1, 2))
+				.isInstanceOfSatisfying(HiraGatewayException.class, e -> {
+					assertThat(e.getReasonCode()).isEqualTo("04");
+					assertThat(e.getErrorName()).isEqualTo("HTTP_ERROR");
+					assertThat(e.getAuthMessage()).isEqualTo("HTTP 에러");
+					assertThat(e.isRetryable()).isTrue();
+					assertThat(e.isPerSecondLimitExceeded()).isFalse();
+				});
+		// 첫 시도 1번과 재시도 3번
+		wireMock.verify(4, getRequestedFor(urlPathEqualTo(PATH)));
+	}
+
+	@Test
+	void 서비스_연결실패_게이트웨이_오류는_재시도할_수_있다() throws IOException {
+		respondWith("gateway-error-05.xml", 403);
+
+		assertThatThrownBy(() -> client.getHospBasisList("110001", 1, 2))
+				.isInstanceOfSatisfying(HiraGatewayException.class, e -> {
+					assertThat(e.getReasonCode()).isEqualTo("05");
+					assertThat(e.getErrorName()).isEqualTo("SERVICETIMEOUT_ERROR");
+					assertThat(e.getAuthMessage()).isEqualTo("서비스 연결실패 에러");
+					assertThat(e.isRetryable()).isTrue();
+					assertThat(e.isPerSecondLimitExceeded()).isFalse();
+				});
+		wireMock.verify(4, getRequestedFor(urlPathEqualTo(PATH)));
+	}
+
+	@Test
 	void 미등록_키_게이트웨이_오류는_재시도하지_않는다() throws IOException {
 		respondWith("gateway-error-30.xml", 403);
 
