@@ -53,6 +53,7 @@ public class HiraClient {
 
 	private final RestClient restClient;
 	private final String serviceKey;
+	private final HiraCallGate callGate;
 	private final XmlMapper xmlMapper = XmlMapper.builder()
 			.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 			.build();
@@ -67,12 +68,22 @@ public class HiraClient {
 		requestFactory.setReadTimeout(properties.readTimeout());
 		this.restClient = builder.uriBuilderFactory(uriBuilderFactory).requestFactory(requestFactory).build();
 		this.serviceKey = properties.serviceKey();
+		this.callGate = HiraCallGate.create(properties);
 	}
 
 	/**
 	 * @param sgguCd 시군구코드. null이면 전국
 	 */
 	public HospBasisPage getHospBasisList(String sgguCd, int pageNo, int numOfRows) {
+		return callGate.call(() -> fetchHospBasisList(sgguCd, pageNo, numOfRows));
+	}
+
+	/** 이 클라이언트(병원정보서비스)로 보낸 호출의 누적 지표 */
+	public HiraCallGate.Stats callStats() {
+		return callGate.stats();
+	}
+
+	private HospBasisPage fetchHospBasisList(String sgguCd, int pageNo, int numOfRows) {
 		String request = "getHospBasisList(sgguCd=" + (sgguCd == null ? "전국" : sgguCd) + ", pageNo=" + pageNo + ")";
 		Map<String, Object> variables = new HashMap<>();
 		variables.put("serviceKey", serviceKey);

@@ -15,6 +15,7 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import dev.chhun.hospitalcompare.hira.config.HiraProperties;
 import dev.chhun.hospitalcompare.hira.dto.HospBasisItem;
 import dev.chhun.hospitalcompare.hira.dto.HospBasisPage;
@@ -53,12 +54,16 @@ class HiraClientTest {
 			.options(wireMockConfig().dynamicPort())
 			.build();
 
+	/** 재시도 대기 때문에 테스트가 느려지지 않게 짧게 둔다. */
+	private static final HiraProperties.Retry FAST_RETRY =
+			new HiraProperties.Retry(3, Duration.ofMillis(5), Duration.ofMillis(20));
+
 	private HiraClient client;
 
 	@BeforeEach
 	void setUp() {
 		HiraProperties properties = new HiraProperties(wireMock.baseUrl(), SERVICE_KEY,
-				Duration.ofSeconds(3), Duration.ofSeconds(1), 4, 1000, HiraProperties.Retry.DEFAULT);
+				Duration.ofSeconds(3), Duration.ofSeconds(1), 4, 1000, FAST_RETRY);
 		client = new HiraClient(RestClient.builder(), properties);
 	}
 
@@ -199,12 +204,27 @@ class HiraClientTest {
 		// 이때 RestClient는 ResourceAccessException이 아닌 RestClientException으로 감싼다.
 		try (ServerSocket server = new ServerSocket(0, 1, InetAddress.getByName("127.0.0.1"))) {
 			Thread.ofVirtual().start(() -> truncateResponse(server));
-			HiraProperties properties = new HiraProperties("http://127.0.0.1:" + server.getLocalPort(), SERVICE_KEY);
+			HiraProperties properties = new HiraProperties("http://127.0.0.1:" + server.getLocalPort(), SERVICE_KEY,
+					Duration.ofSeconds(3), Duration.ofSeconds(1), 4, 1000, FAST_RETRY);
 			HiraClient truncatedClient = new HiraClient(RestClient.builder(), properties);
 
 			assertThatThrownBy(() -> truncatedClient.getHospBasisList("110001", 1, 2))
 					.isInstanceOfSatisfying(HiraException.class, e -> assertThat(e.isRetryable()).isTrue());
 		}
+	}
+
+	@Test
+	void 일시적인_서버_오류는_재시도해서_받는다() throws IOException {
+		byte[] body = new ClassPathResource("fixtures/hira/hosp-basis-list-page1.xml").getContentAsByteArray();
+		wireMock.stubFor(get(urlPathEqualTo(PATH)).inScenario("retry").whenScenarioStateIs(Scenario.STARTED)
+				.willReturn(serviceUnavailable()).willSetStateTo("recovered"));
+		wireMock.stubFor(get(urlPathEqualTo(PATH)).inScenario("retry").whenScenarioStateIs("recovered")
+				.willReturn(aResponse().withHeader("Content-Type", "application/xml;charset=UTF-8").withBody(body)));
+
+		HospBasisPage page = client.getHospBasisList("110001", 1, 2);
+
+		assertThat(page.items()).hasSize(2);
+		assertThat(client.callStats().retries()).isEqualTo(1);
 	}
 
 	@Test
@@ -276,20 +296,22 @@ class HiraClientTest {
 				.withBody(body)));
 	}
 
-	/** 요청을 읽고 Content-Length보다 짧은 본문을 보낸 채 연결을 닫는다. */
+	/** 요청마다 Content-Length보다 짧은 본문을 보낸 채 연결을 닫는다. 서버 소켓이 닫히면 끝난다(재시도해도 같은 응답). */
 	private static void truncateResponse(ServerSocket server) {
-		try (Socket socket = server.accept()) {
-			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
-			String line;
-			while ((line = in.readLine()) != null && !line.isEmpty()) {
-				// 요청 헤더 끝까지 읽는다.
+		while (!server.isClosed()) {
+			try (Socket socket = server.accept()) {
+				BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+				String line;
+				while ((line = in.readLine()) != null && !line.isEmpty()) {
+					// 요청 헤더 끝까지 읽는다.
+				}
+				OutputStream out = socket.getOutputStream();
+				String truncated = "HTTP/1.1 200 OK\r\nContent-Type: application/xml\r\nContent-Length: 1000\r\n\r\n<response>";
+				out.write(truncated.getBytes(StandardCharsets.UTF_8));
+				out.flush();
+			} catch (IOException e) {
+				// 클라이언트가 먼저 끊거나 서버 소켓이 닫혀도 테스트에는 영향이 없다.
 			}
-			OutputStream out = socket.getOutputStream();
-			String truncated = "HTTP/1.1 200 OK\r\nContent-Type: application/xml\r\nContent-Length: 1000\r\n\r\n<response>";
-			out.write(truncated.getBytes(StandardCharsets.UTF_8));
-			out.flush();
-		} catch (IOException e) {
-			// 클라이언트가 먼저 끊어도 테스트에는 영향이 없다.
 		}
 	}
 
