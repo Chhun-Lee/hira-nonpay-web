@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>동네 병원 찾기 | 병원 다나와</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="page" id="app" th:data-max-results="${maxResults}">
+
+  <header class="head">
+    <div class="brand">
+      <h1>병원 다나와</h1>
+      <p>동네 병원 찾기</p>
+    </div>
+    <div class="fields">
+      <label class="field">
+        <span class="field-name">시군구</span>
+        <select id="sggu" class="field-select"><option value="">불러오는 중</option></select>
+      </label>
+      <label class="field">
+        <span class="field-name">동</span>
+        <select id="dong" class="field-select"><option value="">동 전체</option></select>
+      </label>
+      <div class="field" role="group" aria-labelledby="radius-name">
+        <span class="field-name" id="radius-name">반경</span>
+        <div class="seg" id="radius">
+          <button type="button" data-radius="500" aria-pressed="false">500m</button>
+          <button type="button" data-radius="1000" aria-pressed="true">1km</button>
+          <button type="button" data-radius="3000" aria-pressed="false">3km</button>
+        </div>
+      </div>
+      <div class="field" role="group" aria-labelledby="type-name">
+        <span class="field-name" id="type-name">종별</span>
+        <div class="seg seg-scroll" id="cl-cd">
+          <button type="button" data-cl-cd="" aria-pressed="true">전체</button>
+          <button type="button" data-cl-cd="31" aria-pressed="false">의원<em>31</em></button>
+          <button type="button" data-cl-cd="21" aria-pressed="false">병원<em>21</em></button>
+          <button type="button" data-cl-cd="11" aria-pressed="false">종합병원<em>11</em></button>
+          <button type="button" data-cl-cd="01" aria-pressed="false">상급종합<em>01</em></button>
+          <button type="button" data-cl-cd="51" aria-pressed="false">치과의원<em>51</em></button>
+          <button type="button" data-cl-cd="93" aria-pressed="false">한의원<em>93</em></button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="body">
+    <section class="list" aria-labelledby="list-summary">
+      <div class="list-head">
+        <h2 class="list-summary" id="list-summary">검색 중</h2>
+        <span class="list-order">가까운 순</span>
+      </div>
+      <p class="list-notice" id="list-notice" hidden></p>
+      <ol class="rows" id="rows"></ol>
+    </section>
+    <section class="map-area" aria-label="지도">
+      <div class="map" id="map"></div>
+      <button type="button" class="search-here" id="search-here" hidden>이 위치에서 다시 검색</button>
+      <p class="map-error" id="map-error" hidden>지도를 불러오지 못했어요. 카카오 JavaScript 키와 등록한 사이트 도메인을 확인해 주세요.</p>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div><span class="foot-name">출처</span>건강보험심사평가원 공공데이터(공공누리 제1유형)</div>
+    <div><span class="foot-name">기준일</span><span th:text="${baseDate} ?: '수집 전'">수집 전</span></div>
+    <div>심평원과 무관한 개인 프로젝트입니다</div>
+  </footer>
+
+</div>
+<script th:src="@{https://dapi.kakao.com/v2/maps/sdk.js(appkey=${kakaoMapKey},autoload=false)}"
+        onerror="document.getElementById('map-error').hidden = false"></script>
+<script type="module" th:src="@{/js/app.js}"></script>
+</body>
+</html>

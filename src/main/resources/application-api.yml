@@ -10,3 +10,8 @@ management:
     web:
       exposure:
         include: health,info
+
+kakao:
+  map:
+    # 카카오맵 JavaScript 키. 브라우저에 노출되는 키라 Kakao Developers에 등록한 사이트 도메인에서만 동작한다.
+    js-key: ${KAKAO_MAP_KEY}
