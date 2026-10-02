@@ -9,6 +9,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
@@ -99,7 +100,10 @@ public class HiraClient {
 					header == null ? null : header.returnAuthMsg());
 		}
 		if (!response.getStatusCode().is2xxSuccessful()) {
-			throw new HiraException(request + " HTTP " + response.getStatusCode().value());
+			// 리다이렉트는 따라가지 않는다. 원인을 볼 수 있게 이동할 주소를 남기되 서비스 키는 가린다.
+			String location = response.getHeaders().getFirst(HttpHeaders.LOCATION);
+			throw new HiraException(request + " HTTP " + response.getStatusCode().value()
+					+ (location == null ? "" : " Location " + maskServiceKey(location)));
 		}
 		if (!"response".equals(root)) {
 			throw new HiraException(request + " 알 수 없는 응답 형식(루트 요소 " + root + ")");

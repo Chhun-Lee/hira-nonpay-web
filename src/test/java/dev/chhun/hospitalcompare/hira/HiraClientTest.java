@@ -132,6 +132,19 @@ class HiraClientTest {
 	}
 
 	@Test
+	void 리다이렉트는_이동할_주소를_담되_서비스키는_가린다() {
+		wireMock.stubFor(get(anyUrl()).willReturn(aResponse()
+				.withStatus(302)
+				.withHeader("Location", "http://example.com" + PATH + "?ServiceKey=" + ENCODED_SERVICE_KEY + "&pageNo=1")));
+
+		assertThatThrownBy(() -> client.getHospBasisList("110001", 1, 2))
+				.isExactlyInstanceOf(HiraException.class)
+				.hasMessageContaining("302")
+				.hasMessageContaining("http://example.com" + PATH + "?ServiceKey=****&pageNo=1")
+				.message().doesNotContain(ENCODED_SERVICE_KEY);
+	}
+
+	@Test
 	void 연결_실패_예외에_서비스키가_남지_않는다() {
 		wireMock.stubFor(get(anyUrl()).willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
 
