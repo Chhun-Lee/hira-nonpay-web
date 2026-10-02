@@ -48,12 +48,6 @@ public class Snapshot {
 		this.status = status;
 	}
 
-	/** 수집을 마친 날짜와 그 시점의 적재 건수를 기록한다. */
-	public void markCollected(LocalDate baseDate, int recordCount) {
-		this.baseDate = baseDate;
-		this.recordCount = recordCount;
-	}
-
 	/** 검증을 통과한 STAGE를 화면용으로 바꾼다. */
 	public void activate(int recordCount) {
 		this.status = SnapshotStatus.ACTIVE;
