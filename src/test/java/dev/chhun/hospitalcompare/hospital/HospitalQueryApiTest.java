@@ -3,6 +3,8 @@ package dev.chhun.hospitalcompare.hospital;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.chhun.hospitalcompare.TestcontainersConfiguration;
+import java.util.List;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +65,23 @@ class HospitalQueryApiTest {
 				distance -> assertThat(distance.intValue()).isBetween(98, 102));
 		response.extractingPath("$.hospitals[1].distanceMeters").asNumber().satisfies(
 				distance -> assertThat(distance.intValue()).isBetween(297, 302));
+	}
+
+	@Test
+	void 반경_안의_기관이_많아도_가까운_500곳까지만_돌려준다() {
+		long active = jdbcTemplate.queryForObject("select id from snapshot where status = 'ACTIVE'", Long.class);
+		List<Object[]> rows = IntStream.range(0, 501)
+				.mapToObj(i -> new Object[] {active, "Y-MANY-" + i, "많은의원" + i, "31", 37.5 + i * 0.000001, 127.0})
+				.toList();
+		jdbcTemplate.batchUpdate("""
+				insert into hospital (snapshot_id, ykiho, name, cl_cd, latitude, longitude)
+				values (?, ?, ?, ?, ?, ?)
+				""", rows);
+
+		assertThat(mvc.get().uri("/api/hospitals")
+				.param("lat", "37.5").param("lng", "127.0").param("radius", "500"))
+				.hasStatusOk()
+				.bodyJson().extractingPath("$.hospitals").asArray().hasSize(500);
 	}
 
 	@Test

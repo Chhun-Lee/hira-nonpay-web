@@ -26,7 +26,7 @@ class HospitalController {
 		this.hospitalQueryService = hospitalQueryService;
 	}
 
-	@Operation(summary = "반경 병원 검색", description = "active 스냅샷에서 반경 안의 기관을 거리순으로 최대 100곳 돌려준다.")
+	@Operation(summary = "반경 병원 검색", description = "active 스냅샷에서 반경 안의 기관을 거리순으로 최대 500곳 돌려준다.")
 	@GetMapping
 	HospitalSearchResponse search(
 			@Parameter(description = "위도", example = "37.4979")

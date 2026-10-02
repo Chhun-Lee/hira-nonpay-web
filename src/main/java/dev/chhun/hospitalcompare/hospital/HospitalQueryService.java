@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class HospitalQueryService {
 
 	/** 한 번에 돌려주는 최대 기관 수 */
-	static final int MAX_RESULTS = 100;
+	static final int MAX_RESULTS = 500;
 
 	private final SnapshotRepository snapshotRepository;
 	private final HospitalQueryRepository hospitalQueryRepository;
