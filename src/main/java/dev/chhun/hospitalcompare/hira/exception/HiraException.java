@@ -8,8 +8,20 @@ package dev.chhun.hospitalcompare.hira.exception;
  */
 public class HiraException extends RuntimeException {
 
+	private final boolean retryable;
+
 	public HiraException(String message) {
+		this(message, false);
+	}
+
+	public HiraException(String message, boolean retryable) {
 		super(message);
+		this.retryable = retryable;
+	}
+
+	/** 잠시 뒤 같은 요청을 다시 보내면 성공할 수 있는 오류인지(연결 실패, 타임아웃, 5xx, 초당 한도) */
+	public boolean isRetryable() {
+		return retryable;
 	}
 
 }

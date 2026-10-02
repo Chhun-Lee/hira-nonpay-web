@@ -142,8 +142,10 @@ async function loadRegions() {
   sgguSelect.replaceChildren(
     ...state.regions.map(region => option(region.sgguCd, [region.sidoCdNm, region.sgguCdNm].filter(Boolean).join(' '))),
   );
-  fillDongs(state.regions[0]);
-  state.center = centerOf(state.regions[0]);
+  const initial = state.regions.find(region => region.sgguCd === root.dataset.defaultSgguCd) ?? state.regions[0];
+  sgguSelect.value = initial.sgguCd;
+  fillDongs(initial);
+  state.center = centerOf(initial);
 }
 
 function startMap() {

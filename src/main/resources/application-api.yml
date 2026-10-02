@@ -15,3 +15,7 @@ kakao:
   map:
     # 카카오맵 JavaScript 키. 브라우저에 노출되는 키라 Kakao Developers에 등록한 사이트 도메인에서만 동작한다.
     js-key: ${KAKAO_MAP_KEY}
+
+ui:
+  # 첫 화면에서 고를 시군구(전국 데이터가 들어오면 가나다순 첫 지역이 강원이 되므로 정해 둔다). 110001 = 서울 강남구
+  default-sggu-cd: 110001

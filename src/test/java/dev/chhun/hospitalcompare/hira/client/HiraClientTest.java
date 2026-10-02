@@ -1,5 +1,6 @@
 package dev.chhun.hospitalcompare.hira.client;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.absent;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -14,15 +15,24 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import dev.chhun.hospitalcompare.hira.config.HiraProperties;
 import dev.chhun.hospitalcompare.hira.dto.HospBasisItem;
 import dev.chhun.hospitalcompare.hira.dto.HospBasisPage;
 import dev.chhun.hospitalcompare.hira.exception.HiraApiException;
 import dev.chhun.hospitalcompare.hira.exception.HiraException;
 import dev.chhun.hospitalcompare.hira.exception.HiraGatewayException;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -44,11 +54,17 @@ class HiraClientTest {
 			.options(wireMockConfig().dynamicPort())
 			.build();
 
+	/** 재시도 대기 때문에 테스트가 느려지지 않게 짧게 둔다. */
+	private static final HiraProperties.Retry FAST_RETRY =
+			new HiraProperties.Retry(3, Duration.ofMillis(5), Duration.ofMillis(20));
+
 	private HiraClient client;
 
 	@BeforeEach
 	void setUp() {
-		client = new HiraClient(RestClient.builder(), new HiraProperties(wireMock.baseUrl(), SERVICE_KEY));
+		HiraProperties properties = new HiraProperties(wireMock.baseUrl(), SERVICE_KEY,
+				Duration.ofSeconds(3), Duration.ofSeconds(1), 4, 1000, FAST_RETRY);
+		client = new HiraClient(RestClient.builder(), properties);
 	}
 
 	@Test
@@ -105,16 +121,152 @@ class HiraClientTest {
 	}
 
 	@Test
-	void OpenAPI_ServiceResponse는_게이트웨이_오류로_분류한다() throws IOException {
-		respondWith("gateway-error-22.xml");
+	void 일_한도_게이트웨이_오류는_재시도하지_않는다() throws IOException {
+		respondWith("gateway-error-22.xml", 403);
 
 		assertThatThrownBy(() -> client.getHospBasisList("110001", 1, 2))
 				.isInstanceOfSatisfying(HiraGatewayException.class, e -> {
 					assertThat(e.getReasonCode()).isEqualTo("22");
+					assertThat(e.getErrorName()).isEqualTo("LIMITED_NUMBER_OF_SERVICE_REQUESTS_EXCEEDS_ERROR");
+					assertThat(e.getAuthMessage()).isEqualTo("서비스 요청제한횟수 초과에러");
 					assertThat(e.isDailyLimitExceeded()).isTrue();
-					assertThat(e.isPerSecondLimitExceeded()).isFalse();
-					assertThat(e.getAuthMessage()).isEqualTo("LIMITED_NUMBER_OF_SERVICE_REQUESTS_EXCEEDS_ERROR");
+					assertThat(e.isRetryable()).isFalse();
 				});
+	}
+
+	@Test
+	void 초당_한도_게이트웨이_오류는_재시도할_수_있다() throws IOException {
+		respondWith("gateway-error-23.xml", 403);
+
+		assertThatThrownBy(() -> client.getHospBasisList("110001", 1, 2))
+				.isInstanceOfSatisfying(HiraGatewayException.class, e -> {
+					assertThat(e.isPerSecondLimitExceeded()).isTrue();
+					assertThat(e.isRetryable()).isTrue();
+				});
+	}
+
+	@Test
+	void HTTP_에러_게이트웨이_오류는_재시도할_수_있다() throws IOException {
+		respondWith("gateway-error-04.xml", 403);
+
+		assertThatThrownBy(() -> client.getHospBasisList("110001", 1, 2))
+				.isInstanceOfSatisfying(HiraGatewayException.class, e -> {
+					assertThat(e.getReasonCode()).isEqualTo("04");
+					assertThat(e.getErrorName()).isEqualTo("HTTP_ERROR");
+					assertThat(e.getAuthMessage()).isEqualTo("HTTP 에러");
+					assertThat(e.isRetryable()).isTrue();
+					assertThat(e.isPerSecondLimitExceeded()).isFalse();
+				});
+		// 첫 시도 1번과 재시도 3번
+		wireMock.verify(4, getRequestedFor(urlPathEqualTo(PATH)));
+	}
+
+	@Test
+	void 서비스_연결실패_게이트웨이_오류는_재시도할_수_있다() throws IOException {
+		respondWith("gateway-error-05.xml", 403);
+
+		assertThatThrownBy(() -> client.getHospBasisList("110001", 1, 2))
+				.isInstanceOfSatisfying(HiraGatewayException.class, e -> {
+					assertThat(e.getReasonCode()).isEqualTo("05");
+					assertThat(e.getErrorName()).isEqualTo("SERVICETIMEOUT_ERROR");
+					assertThat(e.getAuthMessage()).isEqualTo("서비스 연결실패 에러");
+					assertThat(e.isRetryable()).isTrue();
+					assertThat(e.isPerSecondLimitExceeded()).isFalse();
+				});
+		wireMock.verify(4, getRequestedFor(urlPathEqualTo(PATH)));
+	}
+
+	@Test
+	void 미등록_키_게이트웨이_오류는_재시도하지_않는다() throws IOException {
+		respondWith("gateway-error-30.xml", 403);
+
+		assertThatThrownBy(() -> client.getHospBasisList("110001", 1, 2))
+				.isInstanceOfSatisfying(HiraGatewayException.class, e -> {
+					assertThat(e.getReasonCode()).isEqualTo("30");
+					assertThat(e.getErrorName()).isEqualTo("SERVICE_KEY_IS_NOT_REGISTERED_ERROR");
+					assertThat(e.isRetryable()).isFalse();
+				});
+	}
+
+	@Test
+	void API_오류코드는_재시도하지_않는다() throws IOException {
+		respondWith("api-error.xml");
+
+		assertThatThrownBy(() -> client.getHospBasisList("110001", 1, 2))
+				.isInstanceOfSatisfying(HiraApiException.class, e -> assertThat(e.isRetryable()).isFalse());
+	}
+
+	@Test
+	void 서버_오류_5xx는_재시도할_수_있다() {
+		wireMock.stubFor(get(anyUrl()).willReturn(serviceUnavailable()));
+
+		assertThatThrownBy(() -> client.getHospBasisList("110001", 1, 2))
+				.isInstanceOfSatisfying(HiraException.class, e -> assertThat(e.isRetryable()).isTrue());
+	}
+
+	@Test
+	void 요청_오류_4xx는_재시도하지_않는다() {
+		wireMock.stubFor(get(anyUrl()).willReturn(aResponse().withStatus(400)));
+
+		assertThatThrownBy(() -> client.getHospBasisList("110001", 1, 2))
+				.isInstanceOfSatisfying(HiraException.class, e -> assertThat(e.isRetryable()).isFalse());
+	}
+
+	@Test
+	void 연결_실패는_재시도할_수_있다() {
+		wireMock.stubFor(get(anyUrl()).willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
+
+		assertThatThrownBy(() -> client.getHospBasisList("110001", 1, 2))
+				.isInstanceOfSatisfying(HiraException.class, e -> assertThat(e.isRetryable()).isTrue());
+	}
+
+	@Test
+	void 응답이_읽기_제한을_넘으면_재시도할_수_있는_실패다() throws IOException {
+		byte[] body = new ClassPathResource("fixtures/hira/hosp-basis-list-page1.xml").getContentAsByteArray();
+		wireMock.stubFor(get(anyUrl()).willReturn(aResponse().withFixedDelay(1500).withBody(body)));
+
+		assertThatThrownBy(() -> client.getHospBasisList("110001", 1, 2))
+				.isInstanceOfSatisfying(HiraException.class, e -> assertThat(e.isRetryable()).isTrue());
+	}
+
+	@Test
+	void 본문을_받다가_연결이_끊겨도_재시도할_수_있는_실패다() throws IOException {
+		// 상태 줄과 헤더가 온 뒤 본문을 다 받기 전에 끊긴다. WireMock 오류 모사는 헤더 전에 끊어서 소켓으로 직접 응답한다.
+		// 이때 RestClient는 ResourceAccessException이 아닌 RestClientException으로 감싼다.
+		try (ServerSocket server = new ServerSocket(0, 1, InetAddress.getByName("127.0.0.1"))) {
+			Thread.ofVirtual().start(() -> truncateResponse(server));
+			HiraProperties properties = new HiraProperties("http://127.0.0.1:" + server.getLocalPort(), SERVICE_KEY,
+					Duration.ofSeconds(3), Duration.ofSeconds(1), 4, 1000, FAST_RETRY);
+			HiraClient truncatedClient = new HiraClient(RestClient.builder(), properties);
+
+			assertThatThrownBy(() -> truncatedClient.getHospBasisList("110001", 1, 2))
+					.isInstanceOfSatisfying(HiraException.class, e -> assertThat(e.isRetryable()).isTrue());
+		}
+	}
+
+	@Test
+	void 일시적인_서버_오류는_재시도해서_받는다() throws IOException {
+		byte[] body = new ClassPathResource("fixtures/hira/hosp-basis-list-page1.xml").getContentAsByteArray();
+		wireMock.stubFor(get(urlPathEqualTo(PATH)).inScenario("retry").whenScenarioStateIs(Scenario.STARTED)
+				.willReturn(serviceUnavailable()).willSetStateTo("recovered"));
+		wireMock.stubFor(get(urlPathEqualTo(PATH)).inScenario("retry").whenScenarioStateIs("recovered")
+				.willReturn(aResponse().withHeader("Content-Type", "application/xml;charset=UTF-8").withBody(body)));
+
+		HospBasisPage page = client.getHospBasisList("110001", 1, 2);
+
+		assertThat(page.items()).hasSize(2);
+		assertThat(client.callStats().retries()).isEqualTo(1);
+	}
+
+	@Test
+	void 시군구를_주지_않으면_전국으로_요청한다() throws IOException {
+		respondWith("hosp-basis-list-page1.xml");
+
+		client.getHospBasisList(null, 1, 2);
+
+		wireMock.verify(getRequestedFor(urlPathEqualTo(PATH))
+				.withQueryParam("sgguCd", absent())
+				.withQueryParam("pageNo", equalTo("1")));
 	}
 
 	@Test
@@ -164,10 +316,34 @@ class HiraClientTest {
 	}
 
 	private static void respondWith(String fixture) throws IOException {
+		respondWith(fixture, 200);
+	}
+
+	private static void respondWith(String fixture, int status) throws IOException {
 		byte[] body = new ClassPathResource("fixtures/hira/" + fixture).getContentAsByteArray();
 		wireMock.stubFor(get(urlPathEqualTo(PATH)).willReturn(aResponse()
+				.withStatus(status)
 				.withHeader("Content-Type", "application/xml;charset=UTF-8")
 				.withBody(body)));
+	}
+
+	/** 요청마다 Content-Length보다 짧은 본문을 보낸 채 연결을 닫는다. 서버 소켓이 닫히면 끝난다(재시도해도 같은 응답). */
+	private static void truncateResponse(ServerSocket server) {
+		while (!server.isClosed()) {
+			try (Socket socket = server.accept()) {
+				BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+				String line;
+				while ((line = in.readLine()) != null && !line.isEmpty()) {
+					// 요청 헤더 끝까지 읽는다.
+				}
+				OutputStream out = socket.getOutputStream();
+				String truncated = "HTTP/1.1 200 OK\r\nContent-Type: application/xml\r\nContent-Length: 1000\r\n\r\n<response>";
+				out.write(truncated.getBytes(StandardCharsets.UTF_8));
+				out.flush();
+			} catch (IOException e) {
+				// 클라이언트가 먼저 끊거나 서버 소켓이 닫혀도 테스트에는 영향이 없다.
+			}
+		}
 	}
 
 	private static String stackTraceOf(Throwable throwable) {

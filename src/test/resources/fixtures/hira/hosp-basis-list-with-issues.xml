@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<response>
+    <header>
+        <resultCode>00</resultCode>
+        <resultMsg>NORMAL SERVICE.</resultMsg>
+    </header>
+    <body>
+        <items>
+            <item>
+                <clCd>31</clCd>
+                <clCdNm>의원</clCdNm>
+                <estbDd>20200101</estbDd>
+                <sgguCd>110001</sgguCd>
+                <sgguCdNm>강남구</sgguCdNm>
+                <sidoCd>110000</sidoCd>
+                <sidoCdNm>서울</sidoCdNm>
+                <XPos>127.03</XPos>
+                <YPos>37.50</YPos>
+                <yadmNm>정상의원</yadmNm>
+                <ykiho>RklYLUlTU1VFLU9L</ykiho>
+            </item>
+            <item>
+                <clCd>31</clCd>
+                <clCdNm>의원</clCdNm>
+                <XPos>127.03</XPos>
+                <YPos>37.50</YPos>
+                <ykiho>RklYLUlTU1VFLU5PLU5BTUU=</ykiho>
+            </item>
+            <item>
+                <clCd>31</clCd>
+                <clCdNm>의원</clCdNm>
+                <XPos>0</XPos>
+                <YPos>0</YPos>
+                <yadmNm>바다위의원</yadmNm>
+                <ykiho>RklYLUlTU1VFLU9DRUFO</ykiho>
+            </item>
+            <item>
+                <clCd>31</clCd>
+                <clCdNm>의원</clCdNm>
+                <estbDd>00000000</estbDd>
+                <yadmNm>좌표없는의원</yadmNm>
+                <ykiho>RklYLUlTU1VFLU5PLVBPUw==</ykiho>
+            </item>
+        </items>
+        <numOfRows>100</numOfRows>
+        <pageNo>1</pageNo>
+        <totalCount>4</totalCount>
+    </body>
+</response>

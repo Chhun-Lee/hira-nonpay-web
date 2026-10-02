@@ -11,6 +11,7 @@
 </head>
 <body>
 <div class="page" id="app" th:data-max-results="${maxResults}"
+     th:data-default-sggu-cd="${defaultSgguCd}"
      th:data-kakao-sdk="@{https://dapi.kakao.com/v2/maps/sdk.js(appkey=${kakaoMapKey},autoload=false)}">
 
   <header class="head">

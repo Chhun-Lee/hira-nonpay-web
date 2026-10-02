@@ -9,6 +9,9 @@ public enum SnapshotStatus {
 	ACTIVE,
 
 	/** 새 스냅샷으로 교체된 이전 버전 */
-	RETIRED
+	RETIRED,
+
+	/** 수집이 중단됐거나 검증 게이트를 통과하지 못했다. 사유는 failure_reason에 */
+	FAILED
 
 }
