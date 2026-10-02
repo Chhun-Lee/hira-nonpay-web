@@ -4,6 +4,7 @@ import dev.chhun.hospitalcompare.global.config.KakaoMapProperties;
 import dev.chhun.hospitalcompare.hospital.dto.SnapshotResponse;
 import dev.chhun.hospitalcompare.hospital.service.HospitalQueryService;
 import io.swagger.v3.oas.annotations.Hidden;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,10 +20,13 @@ class HospitalPageController {
 
 	private final HospitalQueryService hospitalQueryService;
 	private final KakaoMapProperties kakaoMapProperties;
+	private final String defaultSgguCd;
 
-	HospitalPageController(HospitalQueryService hospitalQueryService, KakaoMapProperties kakaoMapProperties) {
+	HospitalPageController(HospitalQueryService hospitalQueryService, KakaoMapProperties kakaoMapProperties,
+			@Value("${ui.default-sggu-cd:110001}") String defaultSgguCd) {
 		this.hospitalQueryService = hospitalQueryService;
 		this.kakaoMapProperties = kakaoMapProperties;
+		this.defaultSgguCd = defaultSgguCd;
 	}
 
 	@GetMapping("/")
@@ -30,6 +34,7 @@ class HospitalPageController {
 		model.addAttribute("kakaoMapKey", kakaoMapProperties.jsKey());
 		model.addAttribute("baseDate", hospitalQueryService.activeSnapshot().map(SnapshotResponse::baseDate).orElse(null));
 		model.addAttribute("maxResults", HospitalQueryService.MAX_RESULTS);
+		model.addAttribute("defaultSgguCd", defaultSgguCd);
 		return "index";
 	}
 

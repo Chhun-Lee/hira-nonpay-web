@@ -75,4 +75,11 @@ class HospitalPageTest {
 				.bodyText().contains("--form-green");
 	}
 
+	@Test
+	void 첫_화면_시군구를_설정값으로_넘긴다() {
+		assertThat(mvc.get().uri("/").header(HttpHeaders.ACCEPT, BROWSER_ACCEPT))
+				.hasStatusOk()
+				.bodyText().contains("data-default-sggu-cd=\"110001\"");
+	}
+
 }
