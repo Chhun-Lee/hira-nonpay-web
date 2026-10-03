@@ -35,3 +35,14 @@ collector:
   gate:
     min-count-ratio: 0.8
     max-missing-required-ratio: 0.05
+  nonpay:
+    # 비급여 API 한 페이지 요청 크기. 1000건까지 받아 준다(2026-10-03 탐색).
+    num-of-rows: 1000
+    # 전국 수집은 몇 시간 걸려 진행 상황을 주기적으로 남긴다.
+    progress-interval: 5m
+    # 정리할 때 가격 행을 이만큼씩 나눠 지운다(스냅샷당 수십만 행).
+    delete-chunk-size: 10000
+    gate:
+      min-count-ratio: 0.8
+      max-invalid-ratio: 0.05
+      max-empty-item-ratio: 0.05

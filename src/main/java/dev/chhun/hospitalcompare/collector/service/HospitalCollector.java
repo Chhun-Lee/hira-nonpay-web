@@ -17,12 +17,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.LongAdder;
 import org.slf4j.Logger;
@@ -135,36 +130,15 @@ public class HospitalCollector {
 			if (pages <= 1) {
 				return;
 			}
-			try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-				CompletionService<Void> completion = new ExecutorCompletionService<>(executor);
-				List<Future<Void>> futures = new ArrayList<>();
-				for (int pageNo = 2; pageNo <= pages; pageNo++) {
-					int page = pageNo;
-					futures.add(completion.submit(() -> {
-						store(fetch(page, pageSize));
-						return null;
-					}));
-				}
-				awaitAll(completion, futures);
+			List<Callable<Void>> tasks = new ArrayList<>();
+			for (int pageNo = 2; pageNo <= pages; pageNo++) {
+				int page = pageNo;
+				tasks.add(() -> {
+					store(fetch(page, pageSize));
+					return null;
+				});
 			}
-		}
-
-		/** 하나라도 실패하면 남은 페이지를 취소하고 그 오류를 던진다. */
-		private void awaitAll(CompletionService<Void> completion, List<Future<Void>> futures) {
-			try {
-				for (int done = 0; done < futures.size(); done++) {
-					completion.take().get();
-				}
-			} catch (ExecutionException e) {
-				futures.forEach(future -> future.cancel(true));
-				throw e.getCause() instanceof RuntimeException runtime
-						? runtime
-						: new IllegalStateException(e.getCause());
-			} catch (InterruptedException e) {
-				futures.forEach(future -> future.cancel(true));
-				Thread.currentThread().interrupt();
-				throw new IllegalStateException("수집이 중단되었습니다");
-			}
+			FailFastTasks.runAll(tasks);
 		}
 
 		/** API가 요청보다 작은 페이지를 주면(허용 최대값을 모른다) 그 크기로 나머지를 요청한다. */
