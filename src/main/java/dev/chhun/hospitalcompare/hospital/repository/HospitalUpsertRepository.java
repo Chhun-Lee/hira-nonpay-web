@@ -1,6 +1,8 @@
 package dev.chhun.hospitalcompare.hospital.repository;
 
 import dev.chhun.hospitalcompare.hospital.dto.HospitalRecord;
+import dev.chhun.hospitalcompare.snapshot.entity.SnapshotSource;
+import dev.chhun.hospitalcompare.snapshot.service.SnapshotRowCleaner;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collection;
@@ -14,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
  * 수집 결과를 JDBC batch로 upsert한다. 멱등 키는 uk_hospital_ykiho_snapshot(ykiho, snapshot_id)이다.
  */
 @Repository
-public class HospitalUpsertRepository {
+public class HospitalUpsertRepository implements SnapshotRowCleaner {
 
 	// AS new는 MySQL 8.0.19부터 쓰는 행 별칭이다. 갱신 값에 쓰던 VALUES()는 8.0.20부터 deprecated.
 	private static final String UPSERT = """
@@ -75,6 +77,16 @@ public class HospitalUpsertRepository {
 		Long count = jdbcTemplate.queryForObject(
 				"SELECT COUNT(*) FROM hospital WHERE snapshot_id = ?", Long.class, snapshotId);
 		return count == null ? 0 : count;
+	}
+
+	@Override
+	public SnapshotSource source() {
+		return SnapshotSource.HOSPITAL_LIST;
+	}
+
+	@Override
+	public int deleteRows(Collection<Long> snapshotIds) {
+		return deleteBySnapshotIds(snapshotIds);
 	}
 
 	/** 지정한 스냅샷들의 병원 행을 지운다. */

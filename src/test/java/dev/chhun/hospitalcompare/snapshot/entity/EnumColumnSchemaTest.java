@@ -35,7 +35,7 @@ class EnumColumnSchemaTest {
 
 	@Test
 	void enum은_이름_문자열로_저장된다() {
-		Snapshot snapshot = em.persistAndFlush(new Snapshot(LocalDate.of(2026, 10, 3), SnapshotStatus.STAGE));
+		Snapshot snapshot = em.persistAndFlush(new Snapshot(SnapshotSource.HOSPITAL_LIST, LocalDate.of(2026, 10, 3), SnapshotStatus.STAGE));
 
 		Object stored = em.getEntityManager()
 				.createNativeQuery("select status from snapshot where id = ?")

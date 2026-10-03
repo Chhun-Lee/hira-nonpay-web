@@ -12,6 +12,9 @@ public enum SnapshotStatus {
 	RETIRED,
 
 	/** 수집이 중단됐거나 검증 게이트를 통과하지 못했다. 사유는 failure_reason에 */
-	FAILED
+	FAILED,
+
+	/** 시험 실행(일부 항목)으로 끝났다. 화면에 나가지 않고 정리 대상이다. 사유는 failure_reason에 */
+	TRIAL
 
 }

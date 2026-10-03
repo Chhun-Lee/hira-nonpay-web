@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import java.time.LocalDate;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.JavaType;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -19,6 +20,14 @@ public class Snapshot {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+
+	// 3-2에서 추가한 열. 3-1 DB의 기존 행은 ddl-auto가 열을 추가할 때 기본값(병원 목록)으로 채워진다
+	// (SnapshotSourceEvolutionTest가 지킨다). 값 목록 CHECK가 없는 것은 status와 같은 이유다.
+	@JavaType(SnapshotSourceJavaType.class)
+	@JdbcTypeCode(SqlTypes.VARCHAR)
+	@ColumnDefault("'HOSPITAL_LIST'")
+	@Column(nullable = false, length = 20)
+	private SnapshotSource source;
 
 	/** 데이터 기준일. 화면에 함께 표시한다. */
 	@Column(nullable = false)
@@ -36,14 +45,15 @@ public class Snapshot {
 	@Column(nullable = false)
 	private int recordCount;
 
-	/** FAILED가 된 이유 */
+	/** FAILED·TRIAL이 된 이유 */
 	@Column(length = 500)
 	private String failureReason;
 
 	protected Snapshot() {
 	}
 
-	public Snapshot(LocalDate baseDate, SnapshotStatus status) {
+	public Snapshot(SnapshotSource source, LocalDate baseDate, SnapshotStatus status) {
+		this.source = source;
 		this.baseDate = baseDate;
 		this.status = status;
 	}
@@ -61,11 +71,25 @@ public class Snapshot {
 
 	public void fail(String reason) {
 		this.status = SnapshotStatus.FAILED;
-		this.failureReason = reason == null || reason.length() <= 500 ? reason : reason.substring(0, 500);
+		this.failureReason = truncate(reason);
+	}
+
+	/** 시험 실행을 마쳤다. 화면에 나가지 않는다. */
+	public void endTrial(String reason) {
+		this.status = SnapshotStatus.TRIAL;
+		this.failureReason = truncate(reason);
+	}
+
+	private static String truncate(String reason) {
+		return reason == null || reason.length() <= 500 ? reason : reason.substring(0, 500);
 	}
 
 	public Long getId() {
 		return id;
+	}
+
+	public SnapshotSource getSource() {
+		return source;
 	}
 
 	public LocalDate getBaseDate() {

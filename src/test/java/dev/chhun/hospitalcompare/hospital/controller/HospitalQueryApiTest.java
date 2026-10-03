@@ -158,4 +158,16 @@ class HospitalQueryApiTest {
 				""", snapshotId, ykiho, name, clCd, lat, lng);
 	}
 
+	@Test
+	void 비급여_ACTIVE가_있어도_기준일은_병원_목록_스냅샷을_따른다() {
+		jdbcTemplate.update("""
+				insert into snapshot (source, status, base_date, record_count)
+				values ('NONPAY', 'ACTIVE', '2026-10-03', 9)
+				""");
+
+		assertThat(mvc.get().uri("/api/meta/snapshot"))
+				.hasStatusOk()
+				.bodyJson().extractingPath("$.baseDate").isEqualTo("2026-10-02");
+	}
+
 }

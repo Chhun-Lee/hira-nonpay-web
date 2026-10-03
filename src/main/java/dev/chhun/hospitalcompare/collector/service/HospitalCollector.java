@@ -7,6 +7,7 @@ import dev.chhun.hospitalcompare.hira.client.HiraClient;
 import dev.chhun.hospitalcompare.hira.config.HiraProperties;
 import dev.chhun.hospitalcompare.hira.dto.HospBasisPage;
 import dev.chhun.hospitalcompare.snapshot.entity.Snapshot;
+import dev.chhun.hospitalcompare.snapshot.entity.SnapshotSource;
 import dev.chhun.hospitalcompare.snapshot.entity.SnapshotStatus;
 import dev.chhun.hospitalcompare.hospital.repository.HospitalUpsertRepository;
 import dev.chhun.hospitalcompare.snapshot.repository.QualityIssueRepository;
@@ -72,8 +73,8 @@ public class HospitalCollector {
 				sgguCd == null ? "전국" : sgguCd, hiraProperties.maxConcurrency(), hiraProperties.requestsPerSecond(),
 				numOfRows, hiraProperties.retry());
 		HiraCallGate.Stats statsBefore = hiraClient.callStats();
-		Integer previousActive = snapshotService.activeRecordCount().orElse(null);
-		Snapshot stage = snapshotService.startStage(LocalDate.now(KST));
+		Integer previousActive = snapshotService.activeRecordCount(SnapshotSource.HOSPITAL_LIST).orElse(null);
+		Snapshot stage = snapshotService.startStage(SnapshotSource.HOSPITAL_LIST, LocalDate.now(KST));
 		Run run = new Run(stage.getId(), sgguCd);
 
 		String failure;
@@ -98,7 +99,7 @@ public class HospitalCollector {
 			snapshotService.fail(stage.getId(), failure);
 			status = SnapshotStatus.FAILED;
 		}
-		int deleted = snapshotService.cleanup();
+		int deleted = snapshotService.cleanup(SnapshotSource.HOSPITAL_LIST);
 		HiraCallGate.Stats stats = hiraClient.callStats().minus(statsBefore);
 
 		return new CollectResult(sgguCd == null ? "전국" : sgguCd, stage.getId(), status, failure,
