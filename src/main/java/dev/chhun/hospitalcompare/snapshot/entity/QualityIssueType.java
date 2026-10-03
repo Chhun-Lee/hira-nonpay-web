@@ -12,6 +12,15 @@ public enum QualityIssueType {
 	COORDINATES_OUT_OF_RANGE,
 
 	/** 개설일이 yyyyMMdd 날짜가 아니라 개설일만 비우고 적재했다 */
-	INVALID_DATE
+	INVALID_DATE,
+
+	/** 가격이 숫자가 아니거나 0 이하이거나 최소가 최대보다 크다. 가격 행이면 적재하지 않고, 통계 칸이면 그 값만 비운다 */
+	INVALID_PRICE,
+
+	/** 값이 열 길이를 넘어 잘라서 적재했다 */
+	VALUE_TRUNCATED,
+
+	/** 통계 응답에 모르는 칸 접미사가 왔다. 그 칸은 버렸다(행정구역 개편 등) */
+	UNKNOWN_STAT_KEY
 
 }
