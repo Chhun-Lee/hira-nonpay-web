@@ -8,7 +8,7 @@ import static org.mockito.Mockito.when;
 
 import dev.chhun.hospitalcompare.collector.dto.CollectResult;
 import dev.chhun.hospitalcompare.collector.service.HospitalCollector;
-import dev.chhun.hospitalcompare.hospital.entity.SnapshotStatus;
+import dev.chhun.hospitalcompare.snapshot.entity.SnapshotStatus;
 import java.time.Duration;
 import java.util.Map;
 import org.junit.jupiter.api.Test;

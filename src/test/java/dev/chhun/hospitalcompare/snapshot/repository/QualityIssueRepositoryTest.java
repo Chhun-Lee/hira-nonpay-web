@@ -1,10 +1,10 @@
-package dev.chhun.hospitalcompare.hospital.repository;
+package dev.chhun.hospitalcompare.snapshot.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.chhun.hospitalcompare.TestcontainersConfiguration;
-import dev.chhun.hospitalcompare.hospital.dto.QualityIssue;
-import dev.chhun.hospitalcompare.hospital.entity.QualityIssueType;
+import dev.chhun.hospitalcompare.snapshot.dto.QualityIssue;
+import dev.chhun.hospitalcompare.snapshot.entity.QualityIssueType;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,7 +1,7 @@
-package dev.chhun.hospitalcompare.hospital.repository;
+package dev.chhun.hospitalcompare.snapshot.repository;
 
-import dev.chhun.hospitalcompare.hospital.dto.QualityIssue;
-import dev.chhun.hospitalcompare.hospital.entity.QualityIssueType;
+import dev.chhun.hospitalcompare.snapshot.dto.QualityIssue;
+import dev.chhun.hospitalcompare.snapshot.entity.QualityIssueType;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package dev.chhun.hospitalcompare.hospital.entity;
+package dev.chhun.hospitalcompare.global.jpa;
 
 import org.hibernate.dialect.Dialect;
 import org.hibernate.type.descriptor.converter.spi.BasicValueConverter;
@@ -11,9 +11,9 @@ import org.hibernate.type.descriptor.jdbc.JdbcType;
  * 그러면 enum 값을 추가한 뒤 기존 DB에서 INSERT가 실패한다. AttributeConverter를 써도 Hibernate가 변환기를 거쳐
  * enum 값마다 CHECK를 만들기 때문에, CHECK를 만드는 이 한 메서드만 끈다(EnumColumnSchemaTest가 지킨다).
  */
-abstract class NoCheckEnumJavaType<E extends Enum<E>> extends EnumJavaType<E> {
+public abstract class NoCheckEnumJavaType<E extends Enum<E>> extends EnumJavaType<E> {
 
-	NoCheckEnumJavaType(Class<E> enumClass) {
+	protected NoCheckEnumJavaType(Class<E> enumClass) {
 		super(enumClass);
 	}
 

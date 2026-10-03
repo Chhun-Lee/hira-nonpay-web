@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import dev.chhun.hospitalcompare.TestcontainersConfiguration;
 import dev.chhun.hospitalcompare.collector.dto.CollectResult;
-import dev.chhun.hospitalcompare.hospital.entity.SnapshotStatus;
+import dev.chhun.hospitalcompare.snapshot.entity.SnapshotStatus;
 import java.io.IOException;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;

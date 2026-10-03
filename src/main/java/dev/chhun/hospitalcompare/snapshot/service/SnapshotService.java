@@ -1,9 +1,9 @@
-package dev.chhun.hospitalcompare.hospital.service;
+package dev.chhun.hospitalcompare.snapshot.service;
 
-import dev.chhun.hospitalcompare.hospital.entity.Snapshot;
-import dev.chhun.hospitalcompare.hospital.entity.SnapshotStatus;
+import dev.chhun.hospitalcompare.snapshot.entity.Snapshot;
+import dev.chhun.hospitalcompare.snapshot.entity.SnapshotStatus;
 import dev.chhun.hospitalcompare.hospital.repository.HospitalUpsertRepository;
-import dev.chhun.hospitalcompare.hospital.repository.SnapshotRepository;
+import dev.chhun.hospitalcompare.snapshot.repository.SnapshotRepository;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;

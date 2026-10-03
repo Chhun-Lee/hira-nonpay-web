@@ -1,4 +1,4 @@
-package dev.chhun.hospitalcompare.hospital.entity;
+package dev.chhun.hospitalcompare.snapshot.entity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -1,4 +1,4 @@
-package dev.chhun.hospitalcompare.hospital.entity;
+package dev.chhun.hospitalcompare.snapshot.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

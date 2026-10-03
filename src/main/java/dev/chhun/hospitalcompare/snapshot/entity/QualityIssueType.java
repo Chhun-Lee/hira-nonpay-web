@@ -1,4 +1,4 @@
-package dev.chhun.hospitalcompare.hospital.entity;
+package dev.chhun.hospitalcompare.snapshot.entity;
 
 public enum QualityIssueType {
 

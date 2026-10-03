@@ -1,7 +1,7 @@
-package dev.chhun.hospitalcompare.hospital.repository;
+package dev.chhun.hospitalcompare.snapshot.repository;
 
-import dev.chhun.hospitalcompare.hospital.entity.Snapshot;
-import dev.chhun.hospitalcompare.hospital.entity.SnapshotStatus;
+import dev.chhun.hospitalcompare.snapshot.entity.Snapshot;
+import dev.chhun.hospitalcompare.snapshot.entity.SnapshotStatus;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
