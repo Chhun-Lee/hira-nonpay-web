@@ -4,7 +4,7 @@ import java.util.Map;
 
 /**
  * 비급여 통계의 구분. API 칸 이름의 접미사(dim_key)로 값을 가른다.
- * 실제 응답은 가이드(2019)와 다르게 세종을 Sj로 준다(2026-10-03 탐색).
+ * 실제 응답은 가이드(2019)와 다르게 세종을 Sj로, 충북을 Ccb로 준다(2026-10-03 탐색·실측).
  */
 public enum StatDimension {
 
@@ -31,7 +31,7 @@ public enum StatDimension {
 			Map.entry("Sj", "세종"),
 			Map.entry("Kyg", "경기"),
 			Map.entry("Kaw", "강원"),
-			Map.entry("Ccbk", "충북"),
+			Map.entry("Ccb", "충북"),
 			Map.entry("Ccn", "충남"),
 			Map.entry("Clb", "전북"),
 			Map.entry("Cln", "전남"),
