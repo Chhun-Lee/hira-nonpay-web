@@ -12,7 +12,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 /**
- * 한 번의 수집 결과 버전. hospital 행은 snapshot_id로 여기에 속한다.
+ * 한 번의 수집 결과 버전. 이 버전의 데이터 행(병원 목록의 hospital, 비급여의 nonpay_* 등)은 snapshot_id로 여기에 속한다.
  */
 @Entity
 public class Snapshot {
@@ -41,7 +41,7 @@ public class Snapshot {
 	@Column(nullable = false, length = 10)
 	private SnapshotStatus status;
 
-	/** 적재된 기관 수 */
+	/** 적재된 행 수(병원 목록이면 기관 수, 비급여면 가격 행 수) */
 	@Column(nullable = false)
 	private int recordCount;
 

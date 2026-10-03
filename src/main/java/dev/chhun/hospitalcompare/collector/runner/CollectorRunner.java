@@ -106,7 +106,7 @@ class CollectorRunner implements ApplicationRunner {
 				result.elapsed().toMillis(), result.apiElapsed().toMillis(), result.dbElapsed().toMillis(),
 				result.itemCodes(), result.statRows(),
 				result.received(), result.loaded(), result.excluded(), result.emptyItems(),
-				result.unmatchedYkiho() == null ? "확인 불가(병원 목록 ACTIVE 없음)" : result.unmatchedYkiho(),
+				result.unmatchedYkiho() == null ? "확인 불가" : result.unmatchedYkiho(),
 				result.deleted(), result.issues(), result.reason() == null ? "" : " | 사유 " + result.reason());
 		if (!result.succeeded()) {
 			throw new IllegalStateException("비급여 수집 실패: " + result.reason());

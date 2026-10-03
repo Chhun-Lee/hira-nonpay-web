@@ -16,7 +16,7 @@ import java.util.Map;
  * @param loaded         STAGE에 적재된 가격 행 수
  * @param excluded       검증에서 뺀 가격 행 수
  * @param emptyItems     대상 항목 중 가격 행이 하나도 없는 항목 수
- * @param unmatchedYkiho 병원 목록 ACTIVE에 없는 병원 수. 병원 목록이 없으면 null
+ * @param unmatchedYkiho 병원 목록 ACTIVE에 없는 병원 수. 병원 목록이 없거나 집계에 실패하면 null
  * @param deleted        정리로 지운 비급여 행 수
  */
 public record NonpayCollectResult(

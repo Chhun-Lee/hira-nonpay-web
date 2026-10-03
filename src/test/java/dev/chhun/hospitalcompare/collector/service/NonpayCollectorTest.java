@@ -3,8 +3,8 @@ package dev.chhun.hospitalcompare.collector.service;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.lessThanOrExactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -175,7 +175,7 @@ class NonpayCollectorTest {
 		assertThat(result.reason()).contains("22");
 		// 취소하지 않으면 HE1180000의 지연(3초)이 끝나기를 기다리므로 3초를 넘는다.
 		assertThat(elapsed).isLessThan(Duration.ofSeconds(3));
-		wireMock.verify(lessThanOrExactly(1), getRequestedFor(urlPathEqualTo(BASE + "getNonPaymentItemHospList2"))
+		wireMock.verify(exactly(1), getRequestedFor(urlPathEqualTo(BASE + "getNonPaymentItemHospList2"))
 				.withQueryParam("itemCd", equalTo("HE1180000")));
 	}
 
@@ -194,6 +194,23 @@ class NonpayCollectorTest {
 
 		assertThat(result.status()).isEqualTo(SnapshotStatus.FAILED);
 		assertThat(result.reason()).contains("부분 수집");
+		assertThat(snapshotService.activeSnapshotId(SnapshotSource.NONPAY)).contains(previous);
+	}
+
+	@Test
+	void 시험_실행은_이전_ACTIVE_건수와_비교하지_않고_TRIAL로_끝난다() throws IOException {
+		jdbcTemplate.update("""
+				insert into snapshot (source, status, base_date, record_count)
+				values ('NONPAY', 'ACTIVE', '2026-09-01', 100)
+				""");
+		long previous = jdbcTemplate.queryForObject("select id from snapshot where source = 'NONPAY'", Long.class);
+		stubPrices("ABZ010001", 1, "nonpay/hosp-list-ABZ010001-p1.xml", 200, 0);
+		stubPrices("ABZ010001", 2, "nonpay/hosp-list-ABZ010001-p2.xml", 200, 0);
+
+		NonpayCollectResult result = collector.collect(List.of("ABZ010001"));
+
+		assertThat(result.status()).isEqualTo(SnapshotStatus.TRIAL);
+		assertThat(result.reason()).doesNotContain("부분 수집");
 		assertThat(snapshotService.activeSnapshotId(SnapshotSource.NONPAY)).contains(previous);
 	}
 

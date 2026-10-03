@@ -6,12 +6,13 @@ import dev.chhun.hospitalcompare.hira.client.HiraCallGate;
 import dev.chhun.hospitalcompare.hira.client.NonpayClient;
 import dev.chhun.hospitalcompare.hira.config.HiraProperties;
 import dev.chhun.hospitalcompare.hira.dto.NonpayHospPrice;
-import dev.chhun.hospitalcompare.hira.dto.NonpayItemCode;
 import dev.chhun.hospitalcompare.hira.dto.NonpayPage;
+import dev.chhun.hospitalcompare.hira.exception.HiraException;
 import dev.chhun.hospitalcompare.nonpay.entity.StatDimension;
 import dev.chhun.hospitalcompare.nonpay.repository.NonpayItemRepository;
 import dev.chhun.hospitalcompare.nonpay.repository.NonpayPriceRepository;
 import dev.chhun.hospitalcompare.nonpay.repository.NonpayStatRepository;
+import dev.chhun.hospitalcompare.snapshot.entity.QualityIssueType;
 import dev.chhun.hospitalcompare.snapshot.entity.Snapshot;
 import dev.chhun.hospitalcompare.snapshot.entity.SnapshotSource;
 import dev.chhun.hospitalcompare.snapshot.entity.SnapshotStatus;
@@ -105,17 +106,18 @@ public class NonpayCollector {
 			log.info("비급여 대상 항목 {}개", targets.size());
 			run.collectPrices(targets);
 			loaded = Math.toIntExact(priceRepository.countBySnapshot(stage.getId()));
-			failure = gate.check(previousActive, loaded, run.received.get(), run.excluded.get(), run.targetItems,
+			// 시험 실행은 일부 항목만 받으므로 이전 ACTIVE 건수와 견주지 않는다(제외 비율·빈 항목 결과가 사유에 보이도록).
+			failure = gate.check(trial ? null : previousActive, loaded, run.received.get(), run.excluded.get(), run.targetItems,
 					run.emptyItems()).orElse(null);
 		} catch (RuntimeException e) {
-			log.error("비급여 수집 중단: {}", e.getMessage());
+			if (e instanceof HiraException) {
+				log.error("비급여 수집 중단: {}", e.getMessage());
+			} else {
+				log.error("비급여 수집 중단: {}", e.getMessage(), e);
+			}
 			failure = "수집 중단: " + e.getMessage();
 			aborted = true;
 		}
-		// 정리가 실패·시험 실행 스냅샷의 행을 지우므로 그 전에 센다.
-		Long unmatched = snapshotService.activeSnapshotId(SnapshotSource.HOSPITAL_LIST)
-				.map(hospitalSnapshotId -> priceRepository.countUnmatchedYkiho(stage.getId(), hospitalSnapshotId))
-				.orElse(null);
 
 		SnapshotStatus status;
 		String reason;
@@ -132,7 +134,22 @@ public class NonpayCollector {
 			snapshotService.fail(stage.getId(), failure);
 			status = SnapshotStatus.FAILED;
 		}
-		int deleted = snapshotService.cleanup(SnapshotSource.NONPAY);
+		// 이하는 정보용이다. 상태는 이미 정해졌으므로 실패해도 수집 결과를 바꾸지 않는다.
+		// 정리가 실패·시험 실행 스냅샷의 행을 지우므로 그 전에 센다.
+		Long unmatched = null;
+		try {
+			unmatched = snapshotService.activeSnapshotId(SnapshotSource.HOSPITAL_LIST)
+					.map(hospitalSnapshotId -> priceRepository.countUnmatchedYkiho(stage.getId(), hospitalSnapshotId))
+					.orElse(null);
+		} catch (RuntimeException e) {
+			log.warn("병원 목록과 맞지 않는 병원 수 집계에 실패했습니다: {}", e.getMessage());
+		}
+		int deleted = 0;
+		try {
+			deleted = snapshotService.cleanup(SnapshotSource.NONPAY);
+		} catch (RuntimeException e) {
+			log.warn("비급여 정리에 실패했습니다(다음 실행에서 다시 정리합니다): {}", e.getMessage());
+		}
 		HiraCallGate.Stats stats = nonpayClient.callStats().minus(statsBefore);
 
 		return new NonpayCollectResult(stage.getId(), status, reason, trial, run.targetItems,
@@ -140,7 +157,16 @@ public class NonpayCollector {
 				Duration.ofNanos(System.nanoTime() - started), Duration.ofNanos(stats.callNanos()),
 				Duration.ofNanos(run.dbNanos.sum()), run.itemCodes, run.statRows,
 				run.received.get(), loaded, run.excluded.get(), run.emptyItems(), unmatched, deleted,
-				qualityIssueRepository.countBySnapshot(stage.getId()));
+				issueCounts(stage.getId()));
+	}
+
+	private Map<QualityIssueType, Integer> issueCounts(long snapshotId) {
+		try {
+			return qualityIssueRepository.countBySnapshot(snapshotId);
+		} catch (RuntimeException e) {
+			log.warn("품질 이슈 집계에 실패했습니다: {}", e.getMessage());
+			return Map.of();
+		}
 	}
 
 	/** 수집 한 번의 호출 순서와 집계 */
@@ -195,7 +221,7 @@ public class NonpayCollector {
 				if (!unknown.isEmpty()) {
 					throw new IllegalArgumentException("통계에 없는 항목 코드라 시험 실행할 수 없습니다: " + unknown);
 				}
-				targets = List.copyOf(trialItems);
+				targets = trialItems.stream().distinct().toList();
 			}
 			targetItems = targets.size();
 			return targets;
