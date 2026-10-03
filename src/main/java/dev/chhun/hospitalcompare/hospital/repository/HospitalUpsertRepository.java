@@ -84,14 +84,10 @@ public class HospitalUpsertRepository implements SnapshotRowCleaner {
 		return SnapshotSource.HOSPITAL_LIST;
 	}
 
+	/** 지정한 스냅샷들의 병원 행을 한 트랜잭션에서 지운다. */
 	@Override
-	public int deleteRows(Collection<Long> snapshotIds) {
-		return deleteBySnapshotIds(snapshotIds);
-	}
-
-	/** 지정한 스냅샷들의 병원 행을 지운다. */
 	@Transactional
-	public int deleteBySnapshotIds(Collection<Long> snapshotIds) {
+	public int deleteRows(Collection<Long> snapshotIds) {
 		int deleted = 0;
 		for (Long snapshotId : snapshotIds) {
 			deleted += jdbcTemplate.update("DELETE FROM hospital WHERE snapshot_id = ?", snapshotId);
