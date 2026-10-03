@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<response>
+    <header><resultCode>00</resultCode><resultMsg>NORMAL SERVICE.</resultMsg></header>
+    <body>
+        <items>
+            <item>
+                <middAvgAll>200000</middAvgAll>
+                <middAvgGnhp>210000</middAvgGnhp>
+                <middAvgHosp>140000</middAvgHosp>
+                <middAvgRecu>0</middAvgRecu>
+                <middAvgUsgh>340000</middAvgUsgh>
+                <npayCd>ABZ010001</npayCd>
+                <npayKorNm>상급병실료/1인실</npayKorNm>
+                <prcAvgAll>210000</prcAvgAll>
+                <prcAvgGnhp>220000</prcAvgGnhp>
+                <prcAvgHosp>150000</prcAvgHosp>
+                <prcAvgRecu>0</prcAvgRecu>
+                <prcAvgUsgh>350000</prcAvgUsgh>
+                <prcMaxAll>540000</prcMaxAll>
+                <prcMaxGnhp>400000</prcMaxGnhp>
+                <prcMaxHosp>300000</prcMaxHosp>
+                <prcMaxRecu>0</prcMaxRecu>
+                <prcMaxUsgh>600000</prcMaxUsgh>
+                <prcMinAll>20000</prcMinAll>
+                <prcMinGnhp>100000</prcMinGnhp>
+                <prcMinHosp>20000</prcMinHosp>
+                <prcMinRecu>0</prcMinRecu>
+                <prcMinUsgh>200000</prcMinUsgh>
+                <stdDate>20260903</stdDate>
+            </item>
+            <item>
+                <middAvgAll>456450</middAvgAll>
+                <middAvgUsgh>728610</middAvgUsgh>
+                <npayCd>HE1180000</npayCd>
+                <npayKorNm>자기공명영상진단료(MRI-기본검사)/근골격계-고관절/일반</npayKorNm>
+                <prcAvgAll>480000</prcAvgAll>
+                <prcAvgUsgh>750000</prcAvgUsgh>
+                <prcMaxAll>1001000</prcMaxAll>
+                <prcMaxUsgh>1001000</prcMaxUsgh>
+                <prcMinAll>250000</prcMinAll>
+                <prcMinUsgh>600000</prcMinUsgh>
+                <stdDate>20260903</stdDate>
+            </item>
+        </items>
+        <numOfRows>2</numOfRows>
+        <pageNo>1</pageNo>
+        <totalCount>2</totalCount>
+    </body>
+</response>

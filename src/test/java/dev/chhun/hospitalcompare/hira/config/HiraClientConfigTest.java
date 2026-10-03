@@ -3,6 +3,7 @@ package dev.chhun.hospitalcompare.hira.config;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.chhun.hospitalcompare.hira.client.HiraClient;
+import dev.chhun.hospitalcompare.hira.client.NonpayClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.restclient.autoconfigure.RestClientAutoConfiguration;
@@ -27,7 +28,10 @@ class HiraClientConfigTest {
 	@Test
 	void collector_프로파일은_서비스키가_있으면_클라이언트를_올린다() {
 		runner.withPropertyValues("spring.profiles.active=collector", "hira.service-key=fake+Key/For==Test")
-				.run(context -> assertThat(context).hasSingleBean(HiraClient.class));
+				.run(context -> {
+					assertThat(context).hasSingleBean(HiraClient.class);
+					assertThat(context).hasSingleBean(NonpayClient.class);
+				});
 	}
 
 	@Test

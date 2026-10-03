@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<response>
+    <header><resultCode>00</resultCode><resultMsg>NORMAL SERVICE.</resultMsg></header>
+    <body>
+        <items>
+            <item>
+                <adtEndDd>99991231</adtEndDd>
+                <adtFrDd>20260903</adtFrDd>
+                <clCd>01</clCd>
+                <clCdNm>상급종합</clCdNm>
+                <maxPrc>728610</maxPrc>
+                <minPrc>728610</minPrc>
+                <npayCd>HE1180000</npayCd>
+                <npayKorNm>자기공명영상진단료(MRI-기본검사)/근골격계-고관절/일반</npayKorNm>
+                <sgguCd>110001</sgguCd>
+                <sgguCdNm>강남구</sgguCdNm>
+                <sidoCd>110000</sidoCd>
+                <sidoCdNm>서울</sidoCdNm>
+                <yadmNm>가상상급종합병원</yadmNm>
+                <ykiho>Y-HOSP-A</ykiho>
+            </item>
+            <item>
+                <adtEndDd>99991231</adtEndDd>
+                <adtFrDd>20260903</adtFrDd>
+                <clCd>21</clCd>
+                <clCdNm>병원</clCdNm>
+                <maxPrc>800000</maxPrc>
+                <minPrc>900000</minPrc>
+                <npayCd>HE1180000</npayCd>
+                <npayKorNm>자기공명영상진단료(MRI-기본검사)/근골격계-고관절/일반</npayKorNm>
+                <sgguCd>380500</sgguCd>
+                <sgguCdNm>진주시</sgguCdNm>
+                <sidoCd>380000</sidoCd>
+                <sidoCdNm>경남</sidoCdNm>
+                <yadmNm>가상이상병원</yadmNm>
+                <ykiho>Y-HOSP-D</ykiho>
+            </item>
+        </items>
+        <numOfRows>2</numOfRows>
+        <pageNo>1</pageNo>
+        <totalCount>2</totalCount>
+    </body>
+</response>
