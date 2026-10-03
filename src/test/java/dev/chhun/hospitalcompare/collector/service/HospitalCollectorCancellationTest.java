@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import dev.chhun.hospitalcompare.TestcontainersConfiguration;
 import dev.chhun.hospitalcompare.collector.dto.CollectResult;
-import dev.chhun.hospitalcompare.hospital.entity.SnapshotStatus;
+import dev.chhun.hospitalcompare.snapshot.entity.SnapshotStatus;
 import java.io.IOException;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
@@ -33,9 +33,9 @@ import org.springframework.test.context.DynamicPropertySource;
  */
 @SpringBootTest(properties = {
 		"hira.service-key=fake+Key/For==Test",
-		"hira.max-concurrency=4",
-		"hira.requests-per-second=1000",
-		"hira.read-timeout=5s",
+		"hira.hosp-info.max-concurrency=4",
+		"hira.hosp-info.requests-per-second=1000",
+		"hira.hosp-info.read-timeout=5s",
 		"hira.retry.initial-delay=5ms",
 		"hira.retry.max-delay=20ms",
 		"collector.num-of-rows=2",

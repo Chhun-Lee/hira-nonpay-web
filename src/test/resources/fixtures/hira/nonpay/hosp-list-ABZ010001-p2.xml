@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<response>
+    <header><resultCode>00</resultCode><resultMsg>NORMAL SERVICE.</resultMsg></header>
+    <body>
+        <items>
+            <item>
+                <adtEndDd>99991231</adtEndDd>
+                <adtFrDd>2026-09-03</adtFrDd>
+                <clCd>21</clCd>
+                <clCdNm>병원</clCdNm>
+                <maxPrc>150000</maxPrc>
+                <minPrc>150000</minPrc>
+                <npayCd>ABZ010001</npayCd>
+                <npayKorNm>상급병실료/1인실</npayKorNm>
+                <sgguCd>210004</sgguCd>
+                <sgguCdNm>부산진구</sgguCdNm>
+                <sidoCd>210000</sidoCd>
+                <sidoCdNm>부산</sidoCdNm>
+                <yadmNm>가상병원</yadmNm>
+                <ykiho>Y-HOSP-C</ykiho>
+            </item>
+        </items>
+        <numOfRows>2</numOfRows>
+        <pageNo>2</pageNo>
+        <totalCount>3</totalCount>
+    </body>
+</response>

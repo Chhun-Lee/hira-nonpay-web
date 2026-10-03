@@ -8,18 +8,25 @@ hira:
   base-url: https://apis.data.go.kr/B551182
   # 공공데이터포털 일반 인증키(Decoding). 클라이언트가 인코딩하므로 Encoding 키를 넣으면 이중 인코딩된다.
   service-key: ${HIRA_SERVICE_KEY}
-  # 응답이 오지 않으면 무한정 기다리지 않는다.
-  # 전국 1000건 페이지는 호출당 평균 6~8초가 걸렸다(2026-10-03 실측). 10초로는 시간 초과 재시도가 잦았다.
+  # 응답이 오지 않으면 무한정 기다리지 않는다(모든 서비스 공통 연결 제한).
   connect-timeout: 3s
-  read-timeout: 30s
-  # 병원정보서비스 호출 관문. 초당 한도 값은 공개되지 않아 보수적으로 둔다.
-  # 실측: 동시 4·초당 5 → 전국 2.2분, 동시 8·초당 10 → 1.4분. 둘 다 초당 한도 오류는 없었다.
-  max-concurrency: 4
-  requests-per-second: 5
   retry:
     max-retries: 3
     initial-delay: 500ms
     max-delay: 5s
+  # 서비스마다 읽기 제한과 호출 관문(동시 실행·초당 호출)을 따로 둔다. 한도가 서비스 단위다.
+  hosp-info:
+    # 전국 1000건 페이지는 호출당 평균 6~8초가 걸렸다(2026-10-03 실측). 10초로는 시간 초과 재시도가 잦았다.
+    read-timeout: 30s
+    # 초당 한도 값은 공개되지 않아 보수적으로 둔다.
+    # 실측: 동시 4·초당 5 → 전국 2.2분, 동시 8·초당 10 → 1.4분. 둘 다 초당 한도 오류는 없었다.
+    max-concurrency: 4
+    requests-per-second: 5
+  nonpay:
+    # 10건짜리 응답도 18초, 1000건은 59초가 걸렸다(2026-10-03 새벽 탐색 8회). 그 2배로 둔다.
+    read-timeout: 120s
+    max-concurrency: 4
+    requests-per-second: 5
 
 collector:
   # 목록 API 한 페이지 요청 크기. 1000건까지 받아 준다(2026-10-03 실측).
@@ -28,3 +35,14 @@ collector:
   gate:
     min-count-ratio: 0.8
     max-missing-required-ratio: 0.05
+  nonpay:
+    # 비급여 API 한 페이지 요청 크기. 1000건까지 받아 준다(2026-10-03 탐색).
+    num-of-rows: 1000
+    # 전국 수집은 몇 시간 걸려 진행 상황을 주기적으로 남긴다.
+    progress-interval: 5m
+    # 정리할 때 가격 행을 이만큼씩 나눠 지운다(스냅샷당 수십만 행).
+    delete-chunk-size: 10000
+    gate:
+      min-count-ratio: 0.8
+      max-invalid-ratio: 0.05
+      max-empty-item-ratio: 0.05

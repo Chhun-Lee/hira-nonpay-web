@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<response>
+    <header><resultCode>00</resultCode><resultMsg>NORMAL SERVICE.</resultMsg></header>
+    <body>
+        <items>
+            <item>
+                <middAvgAll>200000</middAvgAll>
+                <middAvgSj>180000</middAvgSj>
+                <middAvgSl>250000</middAvgSl>
+                <npayCd>ABZ010001</npayCd>
+                <npayKorNm>상급병실료/1인실</npayKorNm>
+                <prcAvgAll>210000</prcAvgAll>
+                <prcAvgSj>180000</prcAvgSj>
+                <prcAvgSl>260000</prcAvgSl>
+                <prcMaxAll>540000</prcMaxAll>
+                <prcMaxSj>180000</prcMaxSj>
+                <prcMaxSl>540000</prcMaxSl>
+                <prcMinAll>20000</prcMinAll>
+                <prcMinSj>180000</prcMinSj>
+                <prcMinSl>150000</prcMinSl>
+                <stdDate>20260903</stdDate>
+            </item>
+            <item>
+                <middAvgAll>456450</middAvgAll>
+                <middAvgPs>450000</middAvgPs>
+                <middAvgSl>500000</middAvgSl>
+                <middAvgXx>1</middAvgXx>
+                <npayCd>HE1180000</npayCd>
+                <npayKorNm>자기공명영상진단료(MRI-기본검사)/근골격계-고관절/일반</npayKorNm>
+                <prcAvgAll>480000</prcAvgAll>
+                <prcAvgPs>N/A</prcAvgPs>
+                <prcAvgSl>520000</prcAvgSl>
+                <prcAvgXx>1</prcAvgXx>
+                <prcMaxAll>1001000</prcMaxAll>
+                <prcMaxPs>700000</prcMaxPs>
+                <prcMaxSl>1001000</prcMaxSl>
+                <prcMaxXx>1</prcMaxXx>
+                <prcMinAll>250000</prcMinAll>
+                <prcMinPs>300000</prcMinPs>
+                <prcMinSl>400000</prcMinSl>
+                <prcMinXx>1</prcMinXx>
+                <stdDate>20260903</stdDate>
+            </item>
+        </items>
+        <numOfRows>2</numOfRows>
+        <pageNo>1</pageNo>
+        <totalCount>2</totalCount>
+    </body>
+</response>

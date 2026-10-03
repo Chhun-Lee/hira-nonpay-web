@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<response>
+    <header><resultCode>00</resultCode><resultMsg>NORMAL SERVICE.</resultMsg></header>
+    <body>
+        <items>
+            <item>
+                <adtEndDd>99991231</adtEndDd>
+                <adtFrDd>20180402</adtFrDd>
+                <npayCd>ABZ010001</npayCd>
+                <npayDtlDivCd>1010A010</npayDtlDivCd>
+                <npayDtlDivCdNm>1인실</npayDtlDivCdNm>
+                <npayKorNm>상급병실료/1인실</npayKorNm>
+                <npayMdivCd>1010A</npayMdivCd>
+                <npayMdivCdNm>상급병실료</npayMdivCdNm>
+                <npaySdivCd>1010A010</npaySdivCd>
+                <npaySdivCdNm>1인실</npaySdivCdNm>
+            </item>
+            <item>
+                <adtEndDd>99991231</adtEndDd>
+                <adtFrDd>20180402</adtFrDd>
+                <npayCd>HE1180000</npayCd>
+                <npayDtlDivCd>HE1180000</npayDtlDivCd>
+                <npayDtlDivCdNm>일반</npayDtlDivCdNm>
+                <npayKorNm>자기공명영상진단료(MRI-기본검사)/근골격계-고관절/일반</npayKorNm>
+                <npayMdivCd>1032A</npayMdivCd>
+                <npayMdivCdNm>자기공명영상진단료(MRI-기본검사)</npayMdivCdNm>
+                <npaySdivCd>1032A430</npaySdivCd>
+                <npaySdivCdNm>근골격계-고관절</npaySdivCdNm>
+            </item>
+        </items>
+        <numOfRows>2</numOfRows>
+        <pageNo>1</pageNo>
+        <totalCount>2</totalCount>
+    </body>
+</response>

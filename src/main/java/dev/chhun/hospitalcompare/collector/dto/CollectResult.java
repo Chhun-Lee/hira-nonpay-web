@@ -1,7 +1,7 @@
 package dev.chhun.hospitalcompare.collector.dto;
 
-import dev.chhun.hospitalcompare.hospital.entity.QualityIssueType;
-import dev.chhun.hospitalcompare.hospital.entity.SnapshotStatus;
+import dev.chhun.hospitalcompare.snapshot.entity.QualityIssueType;
+import dev.chhun.hospitalcompare.snapshot.entity.SnapshotStatus;
 import java.time.Duration;
 import java.util.Map;
 

@@ -14,9 +14,9 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import dev.chhun.hospitalcompare.TestcontainersConfiguration;
 import dev.chhun.hospitalcompare.collector.dto.CollectResult;
-import dev.chhun.hospitalcompare.hospital.entity.QualityIssueType;
-import dev.chhun.hospitalcompare.hospital.entity.SnapshotStatus;
-import dev.chhun.hospitalcompare.hospital.service.SnapshotService;
+import dev.chhun.hospitalcompare.snapshot.entity.QualityIssueType;
+import dev.chhun.hospitalcompare.snapshot.entity.SnapshotStatus;
+import dev.chhun.hospitalcompare.snapshot.service.SnapshotService;
 import java.io.IOException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,8 +38,8 @@ import org.springframework.test.context.DynamicPropertySource;
  */
 @SpringBootTest(properties = {
 		"hira.service-key=fake+Key/For==Test",
-		"hira.requests-per-second=1000",
-		"hira.read-timeout=2s",
+		"hira.hosp-info.requests-per-second=1000",
+		"hira.hosp-info.read-timeout=2s",
 		"hira.retry.initial-delay=5ms",
 		"hira.retry.max-delay=20ms",
 		"collector.num-of-rows=100",

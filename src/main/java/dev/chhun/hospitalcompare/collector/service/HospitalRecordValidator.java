@@ -2,8 +2,8 @@ package dev.chhun.hospitalcompare.collector.service;
 
 import dev.chhun.hospitalcompare.hira.dto.HospBasisItem;
 import dev.chhun.hospitalcompare.hospital.dto.HospitalRecord;
-import dev.chhun.hospitalcompare.hospital.dto.QualityIssue;
-import dev.chhun.hospitalcompare.hospital.entity.QualityIssueType;
+import dev.chhun.hospitalcompare.snapshot.dto.QualityIssue;
+import dev.chhun.hospitalcompare.snapshot.entity.QualityIssueType;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;

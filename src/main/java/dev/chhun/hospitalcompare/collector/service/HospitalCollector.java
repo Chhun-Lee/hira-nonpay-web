@@ -6,22 +6,18 @@ import dev.chhun.hospitalcompare.hira.client.HiraCallGate;
 import dev.chhun.hospitalcompare.hira.client.HiraClient;
 import dev.chhun.hospitalcompare.hira.config.HiraProperties;
 import dev.chhun.hospitalcompare.hira.dto.HospBasisPage;
-import dev.chhun.hospitalcompare.hospital.entity.Snapshot;
-import dev.chhun.hospitalcompare.hospital.entity.SnapshotStatus;
+import dev.chhun.hospitalcompare.snapshot.entity.Snapshot;
+import dev.chhun.hospitalcompare.snapshot.entity.SnapshotSource;
+import dev.chhun.hospitalcompare.snapshot.entity.SnapshotStatus;
 import dev.chhun.hospitalcompare.hospital.repository.HospitalUpsertRepository;
-import dev.chhun.hospitalcompare.hospital.repository.QualityIssueRepository;
-import dev.chhun.hospitalcompare.hospital.service.SnapshotService;
+import dev.chhun.hospitalcompare.snapshot.repository.QualityIssueRepository;
+import dev.chhun.hospitalcompare.snapshot.service.SnapshotService;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.LongAdder;
 import org.slf4j.Logger;
@@ -69,11 +65,11 @@ public class HospitalCollector {
 		long started = System.nanoTime();
 		// 측정 비교용으로 이번 실행의 설정을 남긴다.
 		log.info("수집 시작 범위={} | 동시 실행 {}, 초당 호출 {}, numOfRows {}, 재시도 {}",
-				sgguCd == null ? "전국" : sgguCd, hiraProperties.maxConcurrency(), hiraProperties.requestsPerSecond(),
+				sgguCd == null ? "전국" : sgguCd, hiraProperties.hospInfo().maxConcurrency(), hiraProperties.hospInfo().requestsPerSecond(),
 				numOfRows, hiraProperties.retry());
 		HiraCallGate.Stats statsBefore = hiraClient.callStats();
-		Integer previousActive = snapshotService.activeRecordCount().orElse(null);
-		Snapshot stage = snapshotService.startStage(LocalDate.now(KST));
+		Integer previousActive = snapshotService.activeRecordCount(SnapshotSource.HOSPITAL_LIST).orElse(null);
+		Snapshot stage = snapshotService.startStage(SnapshotSource.HOSPITAL_LIST, LocalDate.now(KST));
 		Run run = new Run(stage.getId(), sgguCd);
 
 		String failure;
@@ -98,7 +94,7 @@ public class HospitalCollector {
 			snapshotService.fail(stage.getId(), failure);
 			status = SnapshotStatus.FAILED;
 		}
-		int deleted = snapshotService.cleanup();
+		int deleted = snapshotService.cleanup(SnapshotSource.HOSPITAL_LIST);
 		HiraCallGate.Stats stats = hiraClient.callStats().minus(statsBefore);
 
 		return new CollectResult(sgguCd == null ? "전국" : sgguCd, stage.getId(), status, failure,
@@ -134,36 +130,15 @@ public class HospitalCollector {
 			if (pages <= 1) {
 				return;
 			}
-			try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-				CompletionService<Void> completion = new ExecutorCompletionService<>(executor);
-				List<Future<Void>> futures = new ArrayList<>();
-				for (int pageNo = 2; pageNo <= pages; pageNo++) {
-					int page = pageNo;
-					futures.add(completion.submit(() -> {
-						store(fetch(page, pageSize));
-						return null;
-					}));
-				}
-				awaitAll(completion, futures);
+			List<Callable<Void>> tasks = new ArrayList<>();
+			for (int pageNo = 2; pageNo <= pages; pageNo++) {
+				int page = pageNo;
+				tasks.add(() -> {
+					store(fetch(page, pageSize));
+					return null;
+				});
 			}
-		}
-
-		/** 하나라도 실패하면 남은 페이지를 취소하고 그 오류를 던진다. */
-		private void awaitAll(CompletionService<Void> completion, List<Future<Void>> futures) {
-			try {
-				for (int done = 0; done < futures.size(); done++) {
-					completion.take().get();
-				}
-			} catch (ExecutionException e) {
-				futures.forEach(future -> future.cancel(true));
-				throw e.getCause() instanceof RuntimeException runtime
-						? runtime
-						: new IllegalStateException(e.getCause());
-			} catch (InterruptedException e) {
-				futures.forEach(future -> future.cancel(true));
-				Thread.currentThread().interrupt();
-				throw new IllegalStateException("수집이 중단되었습니다");
-			}
+			FailFastTasks.runAll(tasks);
 		}
 
 		/** API가 요청보다 작은 페이지를 주면(허용 최대값을 모른다) 그 크기로 나머지를 요청한다. */
