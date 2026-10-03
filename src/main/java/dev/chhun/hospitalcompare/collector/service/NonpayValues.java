@@ -27,7 +27,12 @@ final class NonpayValues {
 			return null;
 		}
 		try {
-			return new BigDecimal(raw.trim()).setScale(0, RoundingMode.HALF_UP).longValueExact();
+			BigDecimal value = new BigDecimal(raw.trim());
+			// 1E20000000 같은 지수는 setScale이 오래 걸리므로 long 범위 밖이면 먼저 거른다.
+			if (value.precision() - value.scale() > 19) {
+				return null;
+			}
+			return value.setScale(0, RoundingMode.HALF_UP).longValueExact();
 		} catch (NumberFormatException | ArithmeticException e) {
 			return null;
 		}

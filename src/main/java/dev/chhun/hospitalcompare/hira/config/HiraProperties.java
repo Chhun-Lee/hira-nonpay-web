@@ -15,7 +15,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * @param hospInfo       병원정보서비스
  * @param nonpay         비급여진료비정보서비스
  */
-@ConfigurationProperties("hira")
+@ConfigurationProperties(prefix = "hira", ignoreUnknownFields = false)
 public record HiraProperties(
 		String baseUrl,
 		String serviceKey,

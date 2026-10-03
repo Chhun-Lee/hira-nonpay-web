@@ -1,11 +1,13 @@
 package dev.chhun.hospitalcompare.collector.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 import dev.chhun.hospitalcompare.hira.dto.NonpayHospPrice;
 import dev.chhun.hospitalcompare.nonpay.dto.NonpayPriceRecord;
 import dev.chhun.hospitalcompare.snapshot.dto.QualityIssue;
 import dev.chhun.hospitalcompare.snapshot.entity.QualityIssueType;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -82,6 +84,16 @@ class NonpayPriceValidatorTest {
 
 	private static NonpayHospPrice row(String ykiho, String npayCd, String min, String max, String adtFrDd) {
 		return new NonpayHospPrice(ykiho, "가상병원", "01", "110000", "110001", npayCd, min, max, adtFrDd);
+	}
+
+	@Test
+	void 지수가_터무니없이_큰_가격은_오래_걸리지_않고_뺀다() {
+		NonpayPriceValidator.Result result = assertTimeoutPreemptively(Duration.ofSeconds(2),
+				() -> validator.validate("ABZ010001", List.of(row("Y-A", "ABZ010001", "1E20000000", "1E20000000", "20260903"))));
+
+		assertThat(result.records()).isEmpty();
+		assertThat(result.excluded()).isEqualTo(1);
+		assertThat(result.issues()).extracting(QualityIssue::type).containsOnly(QualityIssueType.INVALID_PRICE);
 	}
 
 }

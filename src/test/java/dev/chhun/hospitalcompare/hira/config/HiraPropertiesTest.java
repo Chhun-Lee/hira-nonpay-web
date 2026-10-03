@@ -10,7 +10,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 class HiraPropertiesTest {
 
@@ -68,6 +70,32 @@ class HiraPropertiesTest {
 		assertThatThrownBy(() -> new HiraProperties.Nonpay(Duration.ofSeconds(120), 0, 5))
 				.isInstanceOf(IllegalStateException.class)
 				.hasMessageContaining("hira.nonpay.max-concurrency");
+	}
+
+	@Test
+	void 옛_설정_키가_남아_있으면_기동이_실패한다() {
+		new ApplicationContextRunner()
+				.withUserConfiguration(HiraPropertiesConfig.class)
+				.withPropertyValues(
+						"hira.base-url=https://apis.data.go.kr/B551182",
+						"hira.service-key=fake+Key/For==Test",
+						"hira.max-concurrency=8")
+				.run(context -> assertThat(context).hasFailed());
+	}
+
+	@Test
+	void 알려진_키만_있으면_기동한다() {
+		new ApplicationContextRunner()
+				.withUserConfiguration(HiraPropertiesConfig.class)
+				.withPropertyValues(
+						"hira.base-url=https://apis.data.go.kr/B551182",
+						"hira.service-key=fake+Key/For==Test",
+						"hira.nonpay.max-concurrency=8")
+				.run(context -> assertThat(context).hasNotFailed());
+	}
+
+	@EnableConfigurationProperties(HiraProperties.class)
+	static class HiraPropertiesConfig {
 	}
 
 	private static HiraProperties bind(Map<String, String> values) {
