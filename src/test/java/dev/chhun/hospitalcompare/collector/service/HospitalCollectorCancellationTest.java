@@ -33,9 +33,9 @@ import org.springframework.test.context.DynamicPropertySource;
  */
 @SpringBootTest(properties = {
 		"hira.service-key=fake+Key/For==Test",
-		"hira.max-concurrency=4",
-		"hira.requests-per-second=1000",
-		"hira.read-timeout=5s",
+		"hira.hosp-info.max-concurrency=4",
+		"hira.hosp-info.requests-per-second=1000",
+		"hira.hosp-info.read-timeout=5s",
 		"hira.retry.initial-delay=5ms",
 		"hira.retry.max-delay=20ms",
 		"collector.num-of-rows=2",

@@ -69,9 +69,8 @@ public class HiraCallGate {
 		}
 	}
 
-	public static HiraCallGate create(HiraProperties properties) {
-		return new HiraCallGate(properties.maxConcurrency(), RateLimiter.perSecond(properties.requestsPerSecond()),
-				properties.retry());
+	public static HiraCallGate create(HiraProperties.ServiceSettings service, HiraProperties.Retry retry) {
+		return new HiraCallGate(service.maxConcurrency(), RateLimiter.perSecond(service.requestsPerSecond()), retry);
 	}
 
 	public <T> T call(Supplier<T> call) {

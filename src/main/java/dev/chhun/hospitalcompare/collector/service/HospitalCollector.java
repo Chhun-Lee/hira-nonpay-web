@@ -70,7 +70,7 @@ public class HospitalCollector {
 		long started = System.nanoTime();
 		// 측정 비교용으로 이번 실행의 설정을 남긴다.
 		log.info("수집 시작 범위={} | 동시 실행 {}, 초당 호출 {}, numOfRows {}, 재시도 {}",
-				sgguCd == null ? "전국" : sgguCd, hiraProperties.maxConcurrency(), hiraProperties.requestsPerSecond(),
+				sgguCd == null ? "전국" : sgguCd, hiraProperties.hospInfo().maxConcurrency(), hiraProperties.hospInfo().requestsPerSecond(),
 				numOfRows, hiraProperties.retry());
 		HiraCallGate.Stats statsBefore = hiraClient.callStats();
 		Integer previousActive = snapshotService.activeRecordCount(SnapshotSource.HOSPITAL_LIST).orElse(null);
