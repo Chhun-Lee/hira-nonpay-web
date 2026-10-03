@@ -27,10 +27,21 @@ class EnumColumnSchemaTest {
 		List<?> checks = em.getEntityManager().createNativeQuery("""
 				select table_name from information_schema.table_constraints
 				where table_schema = database() and constraint_type = 'CHECK'
-				  and table_name in ('snapshot', 'data_quality_issue')
+				  and table_name in ('snapshot', 'data_quality_issue', 'nonpay_stat')
 				""").getResultList();
 
 		assertThat(checks).isEmpty();
+	}
+
+	@Test
+	void nonpay_stat의_dimension은_CHECK_없는_VARCHAR다() {
+		List<?> types = em.getEntityManager().createNativeQuery("""
+				select data_type from information_schema.columns
+				where table_schema = database() and table_name = 'nonpay_stat' and column_name = 'dimension'
+				""").getResultList();
+
+		assertThat(types).hasSize(1);
+		assertThat(types.get(0).toString()).isEqualToIgnoringCase("varchar");
 	}
 
 	@Test
