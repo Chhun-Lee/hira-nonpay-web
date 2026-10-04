@@ -5,6 +5,7 @@ import java.util.Map;
 /**
  * 비급여 통계의 구분. API 칸 이름의 접미사(dim_key)로 값을 가른다.
  * 실제 응답은 가이드(2019)와 다르게 세종을 Sj로, 충북을 Ccb로 준다(2026-10-03 탐색·실측).
+ * 2026년 광주가 전남과 합쳐져 Cln이 전남광주 통계다. Kw(광주) 칸은 응답에 없다(2026-10-03 실DB 확인).
  */
 public enum StatDimension {
 
@@ -34,7 +35,7 @@ public enum StatDimension {
 			Map.entry("Ccb", "충북"),
 			Map.entry("Ccn", "충남"),
 			Map.entry("Clb", "전북"),
-			Map.entry("Cln", "전남"),
+			Map.entry("Cln", "전남광주"),
 			Map.entry("Ksb", "경북"),
 			Map.entry("Ksn", "경남"),
 			Map.entry("Chj", "제주")));

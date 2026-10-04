@@ -12,4 +12,9 @@ class StatDimensionTest {
 		assertThat(StatDimension.SIDO.displayName("Ccb")).isEqualTo("충북");
 	}
 
+	@Test
+	void 광주가_합쳐진_Cln은_전남광주로_표시한다() {
+		assertThat(StatDimension.SIDO.displayName("Cln")).isEqualTo("전남광주");
+	}
+
 }
