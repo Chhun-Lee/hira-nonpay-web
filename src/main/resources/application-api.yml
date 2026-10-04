@@ -31,5 +31,6 @@ noncovered:
     - { code: HE1200000, label: 무릎 MRI }
     - { code: 3Z5200303, label: 대상포진 백신 }
     - { code: PDZ010000, label: 일반 진단서 }
-  # 의원급 비급여 가격은 Open API에 없어 심평원 누리집 화면으로 안내한다. 정확한 화면 주소는 Task 8에서 확인해 바꾼다.
-  hira-nonpay-url: https://www.hira.or.kr
+  # 의원급 비급여 가격은 Open API에 없어 심평원 누리집 화면으로 안내한다.
+  # "비급여 진료비용 정보" 화면(병·의원으로 조회하기). 2026-10-05 브라우저로 확인
+  hira-nonpay-url: https://www.hira.or.kr/npay/index.do?pgmid=HIRAA030009000000
