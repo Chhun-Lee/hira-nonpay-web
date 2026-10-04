@@ -3,6 +3,7 @@ package dev.chhun.hospitalcompare.hospital.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.chhun.hospitalcompare.ApiIntegrationTest;
+import dev.chhun.hospitalcompare.nonpay.config.NonpayUiProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,9 @@ class HospitalPageTest {
 
 	@Autowired
 	JdbcTemplate jdbcTemplate;
+
+	@Autowired
+	NonpayUiProperties nonpayUiProperties;
 
 	@BeforeEach
 	void setUp() {
@@ -80,6 +84,34 @@ class HospitalPageTest {
 		assertThat(mvc.get().uri("/").header(HttpHeaders.ACCEPT, BROWSER_ACCEPT))
 				.hasStatusOk()
 				.bodyText().contains("data-default-sggu-cd=\"110001\"");
+	}
+
+	@Test
+	void 하단에_병원_목록과_비급여_기준일을_함께_보여_준다() {
+		jdbcTemplate.update("""
+				insert into snapshot (source, status, base_date, record_count) values ('NONPAY', 'ACTIVE', '2026-10-03', 0)
+				""");
+
+		assertThat(mvc.get().uri("/").header(HttpHeaders.ACCEPT, BROWSER_ACCEPT))
+				.hasStatusOk()
+				.bodyText().contains("병원 목록 2026-10-02 · 비급여 2026-10-03");
+	}
+
+	@Test
+	void 비급여_ACTIVE가_없으면_비급여는_수집_전() {
+		assertThat(mvc.get().uri("/").header(HttpHeaders.ACCEPT, BROWSER_ACCEPT))
+				.hasStatusOk()
+				.bodyText().contains("병원 목록 2026-10-02 · 비급여 수집 전");
+	}
+
+	@Test
+	void 의원급은_공개_범위_밖이라고_안내하고_심평원_화면으로_잇는다() {
+		assertThat(mvc.get().uri("/").header(HttpHeaders.ACCEPT, BROWSER_ACCEPT))
+				.hasStatusOk()
+				.bodyText()
+				.contains("의원급 가격은 공개 범위 밖이에요")
+				.contains("href=\"" + nonpayUiProperties.hiraNonpayUrl() + "\"")
+				.contains("rel=\"noopener noreferrer\"");
 	}
 
 }

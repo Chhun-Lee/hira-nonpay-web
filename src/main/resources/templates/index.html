@@ -58,6 +58,10 @@
         <span class="list-order">가까운 순</span>
       </div>
       <p class="list-notice" id="list-notice" hidden></p>
+      <p class="list-notice clinic-notice" id="clinic-notice" hidden>
+        의원급 가격은 공개 범위 밖이에요(Open API는 병원급 이상만 제공).
+        <a th:href="${hiraNonpayUrl}" href="https://www.hira.or.kr" target="_blank" rel="noopener noreferrer">심평원 누리집에서 확인 →</a>
+      </p>
       <ol class="rows" id="rows"></ol>
     </section>
     <section class="map-area" aria-label="지도">
@@ -69,7 +73,7 @@
 
   <footer class="foot">
     <div><span class="foot-name">출처</span>건강보험심사평가원 공공데이터(공공누리 제1유형)</div>
-    <div><span class="foot-name">기준일</span><span th:text="${baseDate} ?: '수집 전'">수집 전</span></div>
+    <div><span class="foot-name">기준일</span><span th:text="'병원 목록 ' + (${baseDate} ?: '수집 전') + ' · 비급여 ' + (${nonpayBaseDate} ?: '수집 전')">병원 목록 수집 전 · 비급여 수집 전</span></div>
     <div>심평원과 무관한 개인 프로젝트입니다</div>
   </footer>
 

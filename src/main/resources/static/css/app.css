@@ -130,10 +130,14 @@ button, select { font: inherit; color: inherit; }
 .center-mark::after { top: 7px; left: 0; width: 16px; height: 1.5px; }
 
 /* 하단 고지 */
-.foot { display: grid; grid-template-columns: minmax(0, 1fr) 170px 230px; border-top: 2px solid var(--form-green); font-size: 12px; }
+.foot { display: grid; grid-template-columns: minmax(0, 1fr) 330px 230px; border-top: 2px solid var(--form-green); font-size: 12px; }
 .foot > div { padding: 8px 14px; border-right: 1px solid var(--rule); display: flex; gap: 8px; align-items: baseline; }
 .foot > div:last-child { border-right: 0; }
 .foot-name { color: var(--form-green); font-weight: 500; }
+
+.clinic-notice { color: var(--muted); }
+.clinic-notice a { color: var(--form-green); font-weight: 600; text-decoration: none; }
+.clinic-notice a:hover { text-decoration: underline; }
 
 /* 좁은 화면: 조건 두 줄(시군구·동 / 반경·종별) → 지도 55% → 목록 → 고지 */
 @media (max-width: 959px) {
