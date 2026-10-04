@@ -108,6 +108,20 @@ class NonpayApiTest {
 	}
 
 	@Test
+	void 비급여_ACTIVE가_없으면_가격_비교는_200으로_빈_결과를_준다() {
+		jdbcTemplate.update("delete from snapshot where source = 'NONPAY'");
+
+		var response = assertThat(prices().param("itemCd", MRI))
+				.hasStatusOk()
+				.bodyJson();
+
+		response.extractingPath("$.item").isNull();
+		response.extractingPath("$.hospitals").asArray().isEmpty();
+		response.extractingPath("$.total").isEqualTo(0);
+		response.extractingPath("$.reference").isNull();
+	}
+
+	@Test
 	void 항목을_검색한다() {
 		var response = assertThat(mvc.get().uri("/api/noncovered/items").param("q", "MRI"))
 				.hasStatusOk()

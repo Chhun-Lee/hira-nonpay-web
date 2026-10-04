@@ -119,10 +119,11 @@ function setPriceMode(on) {
 
 // 빠른 선택이나 검색(Task 7)으로 항목을 고른다. item: { code, label }
 function chooseItem(item) {
+  const entering = state.item === null; // 가격 모드에 들어갈 때만 반경을 올린다
   state.item = item;
   itemChosenName.textContent = item.label;
   pressFeatured(item.code);
-  if (state.radius < PRICE_MIN_RADIUS) {
+  if (entering && state.radius < PRICE_MIN_RADIUS) {
     state.radius = PRICE_DEFAULT_RADIUS;
     pressOnly(radiusGroup, radiusGroup.querySelector(`button[data-radius="${PRICE_DEFAULT_RADIUS}"]`));
     state.radiusNotice = '병원급 의료기관은 드물어서 반경을 5km로 넓혔어요.';

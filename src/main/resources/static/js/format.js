@@ -14,12 +14,12 @@ export function formatWon(value) {
   return value === null || value === undefined ? '–' : `${won.format(value)}원`;
 }
 
-// 최소와 최대가 같으면 한 값, 다르면 범위로 쓴다.
+// 최소와 최대가 같으면 한 값, 다르면 범위로 쓴다. 범위는 "~" 뒤에서 줄바꿈할 수 있게 안 보이는 공백을 둔다.
 export function formatPrice(min, max) {
   if (min === null || min === undefined) {
     return '–';
   }
   return min === max || max === null || max === undefined
     ? `${won.format(min)}원`
-    : `${won.format(min)}~${won.format(max)}원`;
+    : `${won.format(min)}~​${won.format(max)}원`;
 }

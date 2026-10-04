@@ -200,6 +200,17 @@ class NonpayQueryServiceTest {
 	}
 
 	@Test
+	void 항목에_통계가_없으면_기준값_전체가_비고_목록과_반경_기준값은_준다() {
+		jdbcTemplate.update("delete from nonpay_stat");
+
+		PriceCompareResponse response = compare(500, PriceSort.PRICE);
+
+		assertThat(response.reference()).isNull();
+		assertThat(response.hospitals()).hasSize(3);
+		assertThat(response.local()).isNotNull();
+	}
+
+	@Test
 	void 시험_실행_스냅샷의_가격은_읽지_않는다() {
 		long trial = insertSnapshot("NONPAY", "TRIAL", "2026-10-04");
 		insertItem(trial, MRI, "자기공명영상진단료(MRI-기본검사)/척추-요천추/일반");

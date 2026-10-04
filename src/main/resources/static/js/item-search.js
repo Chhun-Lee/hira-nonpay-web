@@ -18,6 +18,9 @@ export function createItemSearch({ input, options, onChoose }) {
   }
 
   function close() {
+    clearTimeout(timer); // 대기 중인 검색과 이미 보낸 요청의 응답이 목록을 다시 열지 못하게
+    timer = null;
+    latest++;
     options.hidden = true;
     options.replaceChildren();
     input.setAttribute('aria-expanded', 'false');
@@ -73,7 +76,6 @@ export function createItemSearch({ input, options, onChoose }) {
         element('span', 'item-option-category', item.category),
         element('span', 'item-option-count', `${item.hospitalCount.toLocaleString('ko-KR')}곳`),
       );
-      option.addEventListener('mousedown', event => event.preventDefault()); // 입력 칸 포커스를 잃지 않게
       option.addEventListener('click', () => choose(index));
       return option;
     }));
@@ -107,7 +109,13 @@ export function createItemSearch({ input, options, onChoose }) {
     timer = setTimeout(() => run(query), DEBOUNCE_MS);
   });
 
+  // 목록(스크롤바 포함)을 눌러도 입력 칸 포커스를 잃지 않게
+  options.addEventListener('mousedown', event => event.preventDefault());
+
   input.addEventListener('keydown', event => {
+    if (event.isComposing || event.keyCode === 229) {
+      return; // 한글 조합 중
+    }
     if (event.key === 'Escape') {
       close();
       return;
