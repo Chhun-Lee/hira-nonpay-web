@@ -19,3 +19,17 @@ kakao:
 ui:
   # 첫 화면에서 고를 시군구(전국 데이터가 들어오면 가나다순 첫 지역이 강원이 되므로 정해 둔다). 110001 = 서울 강남구
   default-sggu-cd: 110001
+
+noncovered:
+  # 비급여 항목 빠른 선택 버튼(이 순서대로). 가격 공개 병원이 많은 진료 항목 위주로 골랐다(2026-10-03 기준).
+  featured-items:
+    - { code: MX1220000, label: 도수치료 }
+    - { code: ABZ010001, label: 1인실 }
+    - { code: SZ0840000, label: 체외충격파 }
+    - { code: EB4140000, label: 갑상선 초음파 }
+    - { code: HE1110000, label: 허리 MRI }
+    - { code: HE1200000, label: 무릎 MRI }
+    - { code: 3Z5200303, label: 대상포진 백신 }
+    - { code: PDZ010000, label: 일반 진단서 }
+  # 의원급 비급여 가격은 Open API에 없어 심평원 누리집 화면으로 안내한다. 정확한 화면 주소는 Task 8에서 확인해 바꾼다.
+  hira-nonpay-url: https://www.hira.or.kr
