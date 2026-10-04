@@ -28,7 +28,7 @@ button, select { font: inherit; color: inherit; }
 .brand { padding: 14px 18px; border-right: 1px solid var(--rule); display: flex; flex-direction: column; justify-content: center; }
 .brand h1 { margin: 0; font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
 .brand p { margin: 2px 0 0; font-size: 11.5px; color: var(--muted); }
-.fields { display: grid; grid-template-columns: 150px 130px 196px minmax(0, 1fr); }
+.fields { display: grid; grid-template-columns: 150px 130px 250px minmax(0, 1fr); }
 .field { border-right: 1px solid var(--rule); padding: 8px 12px 10px; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 .field:last-child { border-right: 0; }
 .field-name { font-size: 11px; font-weight: 500; color: var(--form-green); }
@@ -47,6 +47,14 @@ button, select { font: inherit; color: inherit; }
 .seg button em { font-style: normal; font-size: 11px; color: var(--muted); margin-left: 4px; }
 .seg button[aria-pressed="true"] { background: var(--form-green); border-color: var(--form-green); color: #fff; }
 .seg button[aria-pressed="true"] em { color: #fff; opacity: 0.75; }
+
+/* 비급여 항목 칸: 둘째 줄 전체 */
+.field-item { grid-column: 1 / -1; border-right: 0; border-top: 1px solid var(--rule); }
+.item-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; min-width: 0; }
+.item-chosen { display: inline-flex; align-items: center; gap: 4px; padding: 2px 2px 2px 10px; border: 1.5px solid var(--form-green); border-radius: 2px; background: #fff; }
+.item-chosen-name { font-size: 14px; font-weight: 600; }
+.item-clear { border: 0; background: transparent; padding: 2px 6px; color: var(--muted); cursor: pointer; }
+.item-clear:hover { color: var(--seal); }
 
 /* 본문: 목록 | 지도 */
 .body { flex: 1; min-height: 0; display: grid; grid-template-columns: 400px minmax(0, 1fr); }
@@ -89,6 +97,20 @@ button, select { font: inherit; color: inherit; }
   opacity: 0.85;
   pointer-events: none;
 }
+
+/* 가격 모드 */
+.list-sort button { font-size: 12px; padding: 2px 7px; }
+.price-card { border-bottom: 1px solid var(--rule); background: #fff; }
+.card-box { padding: 10px 18px; }
+.card-box + .card-box { border-top: 1px dashed var(--rule); }
+.card-title { margin: 0 0 6px; font-size: 12px; font-weight: 500; color: var(--form-green); }
+.card-line { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 8px; padding: 2px 0; font-size: 12.5px; }
+.card-label { font-weight: 600; }
+.card-empty { margin: 0; font-size: 12.5px; color: var(--muted); }
+.card-types summary { padding: 4px 0; font-size: 12px; color: var(--form-green); cursor: pointer; }
+.row-price { grid-template-columns: 46px minmax(0, 1fr) 132px; }
+.row-amount { display: flex; align-items: center; justify-content: flex-end; padding-right: 16px; font-size: 15px; font-weight: 600; text-align: right; }
+.row-item.is-selected .row-price .row-seal { right: 138px; }
 
 /* 지도 */
 .map-area { position: relative; min-width: 0; min-height: 0; }

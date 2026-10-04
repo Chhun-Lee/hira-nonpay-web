@@ -114,4 +114,22 @@ class HospitalPageTest {
 				.contains("rel=\"noopener noreferrer\"");
 	}
 
+	@Test
+	void 가격_비교_스크립트를_내려준다() {
+		assertThat(mvc.get().uri("/js/price-card.js")).hasStatusOk().bodyText().contains("createPriceCard");
+		assertThat(mvc.get().uri("/js/api.js")).hasStatusOk().bodyText().contains("comparePrices");
+		assertThat(mvc.get().uri("/js/app.js")).hasStatusOk().bodyText().contains("chooseItem");
+	}
+
+	@Test
+	void 비급여_항목_칸과_반경_5km_10km가_있다() {
+		assertThat(mvc.get().uri("/").header(HttpHeaders.ACCEPT, BROWSER_ACCEPT))
+				.hasStatusOk()
+				.bodyText()
+				.contains("id=\"featured\"")
+				.contains("id=\"price-card\"")
+				.contains("data-radius=\"5000\"")
+				.contains("data-radius=\"10000\"");
+	}
+
 }

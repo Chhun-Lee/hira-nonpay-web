@@ -34,6 +34,8 @@
           <button type="button" data-radius="500" aria-pressed="false">500m</button>
           <button type="button" data-radius="1000" aria-pressed="true">1km</button>
           <button type="button" data-radius="3000" aria-pressed="false">3km</button>
+          <button type="button" data-radius="5000" aria-pressed="false">5km</button>
+          <button type="button" data-radius="10000" aria-pressed="false">10km</button>
         </div>
       </div>
       <div class="field" role="group" aria-labelledby="type-name">
@@ -48,6 +50,16 @@
           <button type="button" data-cl-cd="93" aria-pressed="false">한의원<em>93</em></button>
         </div>
       </div>
+      <div class="field field-item" role="group" aria-labelledby="item-name">
+        <span class="field-name" id="item-name">비급여 항목</span>
+        <div class="item-row">
+          <div class="item-chosen" id="item-chosen" hidden>
+            <strong class="item-chosen-name" id="item-chosen-name"></strong>
+            <button type="button" class="item-clear" id="item-clear" aria-label="고른 항목 지우기">✕</button>
+          </div>
+          <div class="seg seg-scroll" id="featured" aria-label="빠른 선택" hidden></div>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -55,8 +67,13 @@
     <section class="list" aria-labelledby="list-summary">
       <div class="list-head">
         <h2 class="list-summary" id="list-summary">검색 중</h2>
-        <span class="list-order">가까운 순</span>
+        <span class="list-order" id="list-order">가까운 순</span>
+        <div class="seg list-sort" id="price-sort" role="group" aria-label="정렬" hidden>
+          <button type="button" data-sort="price" aria-pressed="true">가격순</button>
+          <button type="button" data-sort="distance" aria-pressed="false">거리순</button>
+        </div>
       </div>
+      <div class="price-card" id="price-card" hidden></div>
       <p class="list-notice" id="list-notice" hidden></p>
       <p class="list-notice clinic-notice" id="clinic-notice" hidden>
         의원급 가격은 공개 범위 밖이에요(Open API는 병원급 이상만 제공).
