@@ -1,6 +1,7 @@
 // 화면 상태와 이벤트 연결. 검색 중심·반경과 종별(또는 비급여 항목)을 기준으로 목록과 지도를 다시 그린다.
 // 비급여 항목을 고르면 가격 모드가 되고, 항목을 지우면 병원 찾기(3-1)로 돌아간다.
 import { comparePrices, fetchFeaturedItems, fetchRegions, searchHospitals } from './api.js';
+import { createItemSearch } from './item-search.js';
 import { loadKakaoSdk } from './kakao-sdk.js';
 import { createListView } from './list-view.js';
 import { createMapView } from './map-view.js';
@@ -204,6 +205,11 @@ featuredGroup.addEventListener('click', event => {
 });
 
 itemClearButton.addEventListener('click', clearItem);
+createItemSearch({
+  input: document.getElementById('item-query'),
+  options: document.getElementById('item-options'),
+  onChoose: chooseItem,
+});
 
 sortGroup.addEventListener('click', event => {
   const button = event.target.closest('button[data-sort]');

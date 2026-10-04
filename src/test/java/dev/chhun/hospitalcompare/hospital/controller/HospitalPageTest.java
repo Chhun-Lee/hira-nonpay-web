@@ -132,4 +132,15 @@ class HospitalPageTest {
 				.contains("data-radius=\"10000\"");
 	}
 
+	@Test
+	void 항목_검색_칸과_스크립트가_있다() {
+		assertThat(mvc.get().uri("/").header(HttpHeaders.ACCEPT, BROWSER_ACCEPT))
+				.hasStatusOk()
+				.bodyText()
+				.contains("id=\"item-query\"")
+				.contains("role=\"combobox\"")
+				.contains("id=\"item-options\"");
+		assertThat(mvc.get().uri("/js/item-search.js")).hasStatusOk().bodyText().contains("createItemSearch");
+	}
+
 }

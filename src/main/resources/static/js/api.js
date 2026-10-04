@@ -25,6 +25,10 @@ export function fetchFeaturedItems() {
   return getJson('/api/noncovered/items/featured', null, '빠른 선택 항목');
 }
 
+export function searchItems(query) {
+  return getJson('/api/noncovered/items', new URLSearchParams({ q: query }), '항목 검색');
+}
+
 export function comparePrices({ itemCd, latitude, longitude, radius, sort }) {
   const params = new URLSearchParams({
     itemCd,

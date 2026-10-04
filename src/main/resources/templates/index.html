@@ -53,6 +53,12 @@
       <div class="field field-item" role="group" aria-labelledby="item-name">
         <span class="field-name" id="item-name">비급여 항목</span>
         <div class="item-row">
+          <div class="item-search">
+            <input id="item-query" class="item-input" type="search" autocomplete="off" maxlength="50"
+                   placeholder="항목 이름으로 찾기 (예: MRI, 도수치료)" aria-label="비급여 항목 검색"
+                   role="combobox" aria-expanded="false" aria-controls="item-options" aria-autocomplete="list">
+            <ul class="item-options" id="item-options" role="listbox" aria-label="검색된 비급여 항목" hidden></ul>
+          </div>
           <div class="item-chosen" id="item-chosen" hidden>
             <strong class="item-chosen-name" id="item-chosen-name"></strong>
             <button type="button" class="item-clear" id="item-clear" aria-label="고른 항목 지우기">✕</button>
