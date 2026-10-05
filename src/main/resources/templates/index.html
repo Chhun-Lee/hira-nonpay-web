@@ -34,6 +34,8 @@
           <button type="button" data-radius="500" aria-pressed="false">500m</button>
           <button type="button" data-radius="1000" aria-pressed="true">1km</button>
           <button type="button" data-radius="3000" aria-pressed="false">3km</button>
+          <button type="button" data-radius="5000" aria-pressed="false">5km</button>
+          <button type="button" data-radius="10000" aria-pressed="false">10km</button>
         </div>
       </div>
       <div class="field" role="group" aria-labelledby="type-name">
@@ -48,6 +50,22 @@
           <button type="button" data-cl-cd="93" aria-pressed="false">한의원<em>93</em></button>
         </div>
       </div>
+      <div class="field field-item" role="group" aria-labelledby="item-name">
+        <span class="field-name" id="item-name">비급여 항목</span>
+        <div class="item-row">
+          <div class="item-search">
+            <input id="item-query" class="item-input" type="search" autocomplete="off" maxlength="50"
+                   placeholder="항목 이름으로 찾기 (예: MRI, 도수치료)" aria-label="비급여 항목 검색"
+                   role="combobox" aria-expanded="false" aria-controls="item-options" aria-autocomplete="list">
+            <ul class="item-options" id="item-options" role="listbox" aria-label="검색된 비급여 항목" hidden></ul>
+          </div>
+          <div class="item-chosen" id="item-chosen" hidden>
+            <strong class="item-chosen-name" id="item-chosen-name"></strong>
+            <button type="button" class="item-clear" id="item-clear" aria-label="고른 항목 지우기">✕</button>
+          </div>
+          <div class="seg seg-scroll" id="featured" role="group" aria-label="빠른 선택" hidden></div>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -55,9 +73,18 @@
     <section class="list" aria-labelledby="list-summary">
       <div class="list-head">
         <h2 class="list-summary" id="list-summary">검색 중</h2>
-        <span class="list-order">가까운 순</span>
+        <span class="list-order" id="list-order">가까운 순</span>
+        <div class="seg list-sort" id="price-sort" role="group" aria-label="정렬" hidden>
+          <button type="button" data-sort="price" aria-pressed="true">가격순</button>
+          <button type="button" data-sort="distance" aria-pressed="false">거리순</button>
+        </div>
       </div>
+      <div class="price-card" id="price-card" hidden></div>
       <p class="list-notice" id="list-notice" hidden></p>
+      <p class="list-notice clinic-notice" id="clinic-notice" hidden>
+        의원급 가격은 공개 범위 밖이에요(Open API는 병원급 이상만 제공).
+        <a th:href="${hiraNonpayUrl}" href="https://www.hira.or.kr" target="_blank" rel="noopener noreferrer">심평원 누리집에서 확인 →</a>
+      </p>
       <ol class="rows" id="rows"></ol>
     </section>
     <section class="map-area" aria-label="지도">
@@ -69,7 +96,7 @@
 
   <footer class="foot">
     <div><span class="foot-name">출처</span>건강보험심사평가원 공공데이터(공공누리 제1유형)</div>
-    <div><span class="foot-name">기준일</span><span th:text="${baseDate} ?: '수집 전'">수집 전</span></div>
+    <div><span class="foot-name">기준일</span><span th:text="'병원 목록 ' + (${baseDate} ?: '수집 전') + ' · 비급여 ' + (${nonpayBaseDate} ?: '수집 전')">병원 목록 수집 전 · 비급여 수집 전</span></div>
     <div>심평원과 무관한 개인 프로젝트입니다</div>
   </footer>
 
