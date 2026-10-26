@@ -10,7 +10,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import dev.chhun.hospitalcompare.collector.dto.CollectResult;
+import dev.chhun.hospitalcompare.collector.dto.DetailCollectResult;
 import dev.chhun.hospitalcompare.collector.dto.NonpayCollectResult;
+import dev.chhun.hospitalcompare.collector.service.DetailCollector;
 import dev.chhun.hospitalcompare.collector.service.HospitalCollector;
 import dev.chhun.hospitalcompare.collector.service.NonpayCollector;
 import dev.chhun.hospitalcompare.snapshot.entity.SnapshotStatus;
@@ -24,7 +26,8 @@ class CollectorRunnerTest {
 
 	private final HospitalCollector hospitalCollector = mock(HospitalCollector.class);
 	private final NonpayCollector nonpayCollector = mock(NonpayCollector.class);
-	private final CollectorRunner runner = new CollectorRunner(hospitalCollector, nonpayCollector);
+	private final DetailCollector detailCollector = mock(DetailCollector.class);
+	private final CollectorRunner runner = new CollectorRunner(hospitalCollector, nonpayCollector, detailCollector);
 
 	@Test
 	void 인자가_없으면_전국_병원_목록을_수집한다() {
@@ -126,6 +129,43 @@ class CollectorRunnerTest {
 				.isInstanceOf(IllegalArgumentException.class);
 	}
 
+	@Test
+	void target이_detail이면_전국_병원급_상세정보를_수집한다() {
+		when(detailCollector.collect(any())).thenReturn(detailResult(SnapshotStatus.ACTIVE, null));
+
+		runner.run(new DefaultApplicationArguments("--target=detail"));
+
+		verify(detailCollector).collect(null);
+		verify(hospitalCollector, never()).collect(any());
+	}
+
+	@Test
+	void detail에_sgguCd를_주면_그_시군구를_시험_실행한다() {
+		when(detailCollector.collect(any())).thenReturn(detailResult(SnapshotStatus.TRIAL, "시험 실행"));
+
+		assertThatCode(() -> runner.run(new DefaultApplicationArguments("--target=detail", "--sgguCd=110001")))
+				.doesNotThrowAnyException();
+
+		verify(detailCollector).collect("110001");
+	}
+
+	@Test
+	void detail에_items를_주면_거절한다() {
+		assertThatThrownBy(() -> runner.run(new DefaultApplicationArguments("--target=detail", "--items=ABZ010001")))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessageContaining("--items");
+		verify(detailCollector, never()).collect(any());
+	}
+
+	@Test
+	void 상세정보_수집이_실패하면_예외로_끝내_종료_코드를_남긴다() {
+		when(detailCollector.collect(any())).thenReturn(detailResult(SnapshotStatus.FAILED, "부분 수집 의심"));
+
+		assertThatThrownBy(() -> runner.run(new DefaultApplicationArguments("--target=detail")))
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessageContaining("부분 수집 의심");
+	}
+
 	private static CollectResult hospitalResult(SnapshotStatus status, String failureReason) {
 		return new CollectResult("전국", 1L, status, failureReason, 2, 0, 0,
 				Duration.ofSeconds(1), Duration.ofMillis(900), Duration.ofMillis(50), 3, 3, 3, 0, Map.of());
@@ -135,6 +175,12 @@ class CollectorRunnerTest {
 		return new NonpayCollectResult(2L, status, reason, status == SnapshotStatus.TRIAL, 2, 6, 0, 0,
 				Duration.ofSeconds(1), Duration.ofMillis(900), Duration.ofMillis(50), 2, 12, 5, 4, 1, 0, 1L, 0,
 				Map.of());
+	}
+
+	private static DetailCollectResult detailResult(SnapshotStatus status, String reason) {
+		return new DetailCollectResult(3L, status, reason, status == SnapshotStatus.TRIAL, "전국", 3, 7, 0, 0,
+				Duration.ofSeconds(1), Duration.ofMillis(700), Duration.ofMillis(50), 2, 1, 13, 0, 25, 3,
+				Map.of("21", new DetailCollectResult.Coverage(1, 1)), 0, Map.of());
 	}
 
 }
