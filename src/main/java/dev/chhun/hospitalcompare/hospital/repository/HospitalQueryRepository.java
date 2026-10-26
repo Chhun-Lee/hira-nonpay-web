@@ -1,10 +1,12 @@
 package dev.chhun.hospitalcompare.hospital.repository;
 
 import dev.chhun.hospitalcompare.global.util.BoundingBox;
+import dev.chhun.hospitalcompare.hospital.dto.HospitalBasic;
 import dev.chhun.hospitalcompare.hospital.dto.HospitalRef;
 import dev.chhun.hospitalcompare.hospital.dto.NearbyHospital;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
@@ -66,6 +68,28 @@ public class HospitalQueryRepository {
 						rs.getObject("doctor_count", Integer.class),
 						(int) Math.round(rs.getDouble("distance"))))
 				.list();
+	}
+
+	/** 유니크 키 (ykiho, snapshot_id)로 한 기관을 찾는다 */
+	public Optional<HospitalBasic> findBasic(long snapshotId, String ykiho) {
+		return jdbcClient.sql("""
+						SELECT ykiho, name, cl_cd, cl_cd_nm, address, phone, latitude, longitude, doctor_count
+						FROM hospital
+						WHERE ykiho = :ykiho AND snapshot_id = :snapshotId
+						""")
+				.param("snapshotId", snapshotId)
+				.param("ykiho", ykiho)
+				.query((rs, rowNum) -> new HospitalBasic(
+						rs.getString("ykiho"),
+						rs.getString("name"),
+						rs.getString("cl_cd"),
+						rs.getString("cl_cd_nm"),
+						rs.getString("address"),
+						rs.getString("phone"),
+						rs.getObject("latitude", Double.class),
+						rs.getObject("longitude", Double.class),
+						rs.getObject("doctor_count", Integer.class)))
+				.optional();
 	}
 
 	/** 상세정보 수집 대상: 종별이 clCodes 안인 기관. sgguCd가 있으면 그 시군구만. ykiho 순 */
