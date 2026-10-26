@@ -52,3 +52,12 @@ collector:
       min-count-ratio: 0.8
       max-invalid-ratio: 0.05
       max-empty-item-ratio: 0.05
+  detail:
+    # 기관 하나의 응답은 최대 35행이었다(2026-10-05 탐색). 한 페이지에 다 받는다.
+    num-of-rows: 100
+    # 전국 8,444회가 15분 남짓 걸려 1분마다 진행을 남긴다.
+    progress-interval: 1m
+    gate:
+      max-empty-subject-ratio: 0.05
+      min-count-ratio: 0.8
+      max-invalid-hours-ratio: 0.05

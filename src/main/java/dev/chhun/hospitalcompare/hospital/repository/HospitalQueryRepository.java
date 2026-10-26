@@ -1,7 +1,9 @@
 package dev.chhun.hospitalcompare.hospital.repository;
 
 import dev.chhun.hospitalcompare.global.util.BoundingBox;
+import dev.chhun.hospitalcompare.hospital.dto.HospitalRef;
 import dev.chhun.hospitalcompare.hospital.dto.NearbyHospital;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
@@ -63,6 +65,21 @@ public class HospitalQueryRepository {
 						rs.getDouble("longitude"),
 						rs.getObject("doctor_count", Integer.class),
 						(int) Math.round(rs.getDouble("distance"))))
+				.list();
+	}
+
+	/** 상세정보 수집 대상: 종별이 clCodes 안인 기관. sgguCd가 있으면 그 시군구만. ykiho 순 */
+	public List<HospitalRef> findDetailTargets(long snapshotId, Collection<String> clCodes, String sgguCd) {
+		String sql = """
+				SELECT ykiho, cl_cd FROM hospital
+				WHERE snapshot_id = :snapshotId AND cl_cd IN (:clCodes) %s
+				ORDER BY ykiho
+				""".formatted(sgguCd == null ? "" : "AND sggu_cd = :sgguCd");
+		return jdbcClient.sql(sql)
+				.param("snapshotId", snapshotId)
+				.param("clCodes", clCodes)
+				.param("sgguCd", sgguCd)
+				.query((rs, rowNum) -> new HospitalRef(rs.getString("ykiho"), rs.getString("cl_cd")))
 				.list();
 	}
 
