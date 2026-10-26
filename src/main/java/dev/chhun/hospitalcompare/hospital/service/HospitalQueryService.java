@@ -1,6 +1,12 @@
 package dev.chhun.hospitalcompare.hospital.service;
 
+import dev.chhun.hospitalcompare.detail.config.HospitalLevelProperties;
+import dev.chhun.hospitalcompare.detail.dto.OpenNowSummary;
+import dev.chhun.hospitalcompare.detail.dto.OpenState;
+import dev.chhun.hospitalcompare.detail.dto.OpenStatus;
+import dev.chhun.hospitalcompare.detail.service.OpenStatusService;
 import dev.chhun.hospitalcompare.hospital.dto.HospitalSearchResponse;
+import dev.chhun.hospitalcompare.hospital.dto.NearbyHospital;
 import dev.chhun.hospitalcompare.hospital.dto.RegionResponse;
 import dev.chhun.hospitalcompare.hospital.dto.SnapshotResponse;
 import dev.chhun.hospitalcompare.snapshot.entity.Snapshot;
@@ -9,7 +15,9 @@ import dev.chhun.hospitalcompare.snapshot.entity.SnapshotStatus;
 import dev.chhun.hospitalcompare.hospital.repository.HospitalQueryRepository;
 import dev.chhun.hospitalcompare.hospital.repository.RegionQueryRepository;
 import dev.chhun.hospitalcompare.snapshot.repository.SnapshotRepository;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,20 +35,58 @@ public class HospitalQueryService {
 	private final SnapshotRepository snapshotRepository;
 	private final HospitalQueryRepository hospitalQueryRepository;
 	private final RegionQueryRepository regionQueryRepository;
+	private final OpenStatusService openStatusService;
+	private final HospitalLevelProperties hospitalLevel;
 
 	public HospitalQueryService(SnapshotRepository snapshotRepository, HospitalQueryRepository hospitalQueryRepository,
-			RegionQueryRepository regionQueryRepository) {
+			RegionQueryRepository regionQueryRepository, OpenStatusService openStatusService,
+			HospitalLevelProperties hospitalLevel) {
 		this.snapshotRepository = snapshotRepository;
 		this.hospitalQueryRepository = hospitalQueryRepository;
 		this.regionQueryRepository = regionQueryRepository;
+		this.openStatusService = openStatusService;
+		this.hospitalLevel = hospitalLevel;
 	}
 
 	public HospitalSearchResponse searchNearby(double latitude, double longitude, int radiusMeters, String clCd) {
-		return active()
-				.map(snapshot -> new HospitalSearchResponse(snapshot.getBaseDate(),
-						hospitalQueryRepository.findNearby(snapshot.getId(), latitude, longitude, radiusMeters, clCd,
-								MAX_RESULTS)))
-				.orElseGet(() -> new HospitalSearchResponse(null, List.of()));
+		return searchNearby(latitude, longitude, radiusMeters, clCd, false);
+	}
+
+	/**
+	 * 반경 안 기관을 거리순으로 최대 500곳. 병원급 행에는 지금 상태를 붙인다.
+	 *
+	 * @param openNow true면 지금 진료 중인 병원급만 남긴다. 판정은 500곳으로 자르기 전에 한다
+	 */
+	public HospitalSearchResponse searchNearby(double latitude, double longitude, int radiusMeters, String clCd,
+			boolean openNow) {
+		LocalDateTime at = openStatusService.now();
+		Optional<Snapshot> snapshot = active();
+		if (snapshot.isEmpty()) {
+			return new HospitalSearchResponse(null, List.of(), openNow ? new OpenNowSummary(at, 0, 0) : null);
+		}
+		long snapshotId = snapshot.get().getId();
+		if (!openNow) {
+			List<NearbyHospital> hospitals = hospitalQueryRepository.findNearby(snapshotId, latitude, longitude,
+					radiusMeters, clCd, MAX_RESULTS);
+			Map<String, OpenStatus> statuses = openStatusService.statuses(hospitals.stream()
+					.filter(hospital -> hospitalLevel.isHospitalLevel(hospital.clCd()))
+					.map(NearbyHospital::ykiho)
+					.toList(), at);
+			return new HospitalSearchResponse(snapshot.get().getBaseDate(), hospitals.stream()
+					.map(hospital -> hospital.withOpenStatus(statuses.get(hospital.ykiho())))
+					.toList(), null);
+		}
+		List<NearbyHospital> candidates = hospitalQueryRepository.findNearbyAmong(snapshotId, latitude, longitude,
+				radiusMeters, clCd, hospitalLevel.levelClCodes());
+		Map<String, OpenStatus> statuses = openStatusService.statuses(
+				candidates.stream().map(NearbyHospital::ykiho).toList(), at);
+		List<NearbyHospital> open = candidates.stream()
+				.map(hospital -> hospital.withOpenStatus(statuses.get(hospital.ykiho())))
+				.filter(hospital -> hospital.openStatus().status() == OpenState.OPEN)
+				.toList();
+		int unknown = (int) statuses.values().stream().filter(status -> status.status() == OpenState.UNKNOWN).count();
+		return new HospitalSearchResponse(snapshot.get().getBaseDate(), open.stream().limit(MAX_RESULTS).toList(),
+				new OpenNowSummary(at, open.size(), unknown));
 	}
 
 	public Optional<SnapshotResponse> activeSnapshot() {

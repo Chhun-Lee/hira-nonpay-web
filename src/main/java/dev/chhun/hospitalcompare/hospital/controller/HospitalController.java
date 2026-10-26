@@ -28,7 +28,7 @@ class HospitalController {
 		this.hospitalQueryService = hospitalQueryService;
 	}
 
-	@Operation(summary = "반경 병원 검색", description = "active 스냅샷에서 반경 안의 기관을 거리순으로 최대 500곳 돌려준다.")
+	@Operation(summary = "반경 병원 검색", description = "active 스냅샷에서 반경 안의 기관을 거리순으로 최대 500곳 돌려준다. openNow=true면 지금 진료 중인 병원급만.")
 	@GetMapping
 	HospitalSearchResponse search(
 			@Parameter(description = "위도", example = "37.4979")
@@ -38,8 +38,10 @@ class HospitalController {
 			@Parameter(description = "반경(m), 1 ~ 20,000", example = "500")
 			@RequestParam @Min(1) @Max(20_000) int radius,
 			@Parameter(description = "종별코드. 예: 01 상급종합, 11 종합병원, 21 병원, 31 의원. 비우면 전체")
-			@RequestParam(required = false) String clCd) {
-		return hospitalQueryService.searchNearby(lat, lng, radius, clCd);
+			@RequestParam(required = false) String clCd,
+			@Parameter(description = "true면 지금 진료 중인 병원급만(진료시간 정보가 없는 병원과 의원급은 빠진다)")
+			@RequestParam(defaultValue = "false") boolean openNow) {
+		return hospitalQueryService.searchNearby(lat, lng, radius, clCd, openNow);
 	}
 
 }
