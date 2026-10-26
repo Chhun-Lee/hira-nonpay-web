@@ -241,7 +241,7 @@ public class NonpayCollector {
 					return null;
 				});
 			}
-			FailFastTasks.runAll(firstPages);
+			FailFastTasks.runAll(firstPages, service.maxConcurrency());
 
 			List<Callable<Void>> restPages = new ArrayList<>();
 			for (String item : targets) {
@@ -257,7 +257,7 @@ public class NonpayCollector {
 				}
 			}
 			progress.start("2차(나머지 페이지)", restPages.size());
-			FailFastTasks.runAll(restPages);
+			FailFastTasks.runAll(restPages, service.maxConcurrency());
 
 			long mismatched = targets.stream()
 					.filter(item -> receivedByItem.getOrDefault(item, new AtomicInteger()).get() != totalByItem.get(item))

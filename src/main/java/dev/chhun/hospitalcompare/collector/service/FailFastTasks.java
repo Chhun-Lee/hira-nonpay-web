@@ -9,22 +9,29 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 
 /**
- * 작업들을 가상 스레드로 동시에 돌리고, 하나라도 실패하면 나머지를 취소한 뒤 그 오류를 던진다.
+ * 작업들을 고정 크기 스레드 풀로 동시에 돌리고, 하나라도 실패하면 나머지를 취소한 뒤 그 오류를 던진다.
  * 모든 작업이 실제로 끝날 때까지 돌아오지 않는다(executor.close). 그래서 실패를 기록한 뒤 늦은 적재가 끼어들지 않는다.
- * 동시 실행 수와 초당 호출은 각 작업이 거치는 HIRA 관문이 제한한다.
+ * 풀 크기는 관문의 동시 실행 수와 같게 넘긴다. 동시 실행 수가 4~8이라 작업마다 가상 스레드를 둘 이유가 없다.
+ * 재시도 백오프 중인 작업도 풀 스레드를 쥐고 있어 그동안 실제 동시성은 풀 크기보다 작아진다(감수한다).
  */
 final class FailFastTasks {
 
 	private FailFastTasks() {
 	}
 
-	static void runAll(List<Callable<Void>> tasks) {
+	/**
+	 * @param threads 풀 크기(동시에 도는 작업 수의 상한)
+	 */
+	static void runAll(List<Callable<Void>> tasks, int threads) {
 		if (tasks.isEmpty()) {
 			return;
 		}
-		try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+		// 데몬 스레드라 강제 종료 때 응답 대기 중인 작업이 JVM 종료를 붙잡지 않는다(가상 스레드 때와 같다).
+		ThreadFactory factory = Thread.ofPlatform().name("collector-", 1).daemon(true).factory();
+		try (ExecutorService executor = Executors.newFixedThreadPool(threads, factory)) {
 			CompletionService<Void> completion = new ExecutorCompletionService<>(executor);
 			List<Future<Void>> futures = new ArrayList<>(tasks.size());
 			for (Callable<Void> task : tasks) {

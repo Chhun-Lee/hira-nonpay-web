@@ -27,7 +27,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * 병원정보서비스 목록을 받아 새 STAGE 스냅샷에 적재하고, 검증 게이트를 통과하면 화면용(ACTIVE)으로 바꾼다.
- * 1페이지로 전체 건수를 본 뒤 나머지 페이지는 가상 스레드로 병렬 처리한다(동시 실행 수·초당 호출은 HiraCallGate가 제한).
+ * 1페이지로 전체 건수를 본 뒤 나머지 페이지는 고정 스레드 풀(크기 = 관문 동시 실행 수)로 병렬 처리한다(동시 실행 수·초당 호출은 HiraCallGate가 제한).
  * 실패하면 STAGE를 FAILED로 남기고 이전 ACTIVE는 그대로 둔다. 다시 돌리면 처음부터 새로 받는다.
  */
 @Service
@@ -138,7 +138,7 @@ public class HospitalCollector {
 					return null;
 				});
 			}
-			FailFastTasks.runAll(tasks);
+			FailFastTasks.runAll(tasks, hiraProperties.hospInfo().maxConcurrency());
 		}
 
 		/** API가 요청보다 작은 페이지를 주면(허용 최대값을 모른다) 그 크기로 나머지를 요청한다. */
