@@ -37,6 +37,7 @@ const listSection = document.querySelector('section.list');
 const rowsElement = document.getElementById('rows');
 const detailSection = document.getElementById('detail');
 const detailBack = document.getElementById('detail-back');
+const openNowButton = document.getElementById('open-now');
 
 const state = {
   center: FALLBACK_CENTER,
@@ -44,6 +45,7 @@ const state = {
   clCd: '',
   item: null, // { code, label } — 있으면 가격 모드
   sort: 'price',
+  openNow: false, // 지금 진료 중인 병원급만
   radiusNotice: null, // 반경을 넓혔다는 알림. 다음 검색에서 한 번만 보인다
   regions: [],
   hospitals: [],
@@ -138,7 +140,7 @@ async function search() {
   try {
     if (state.item) {
       const result = await comparePrices({
-        itemCd: state.item.code, ...state.center, radius: state.radius, sort: state.sort,
+        itemCd: state.item.code, ...state.center, radius: state.radius, sort: state.sort, openNow: state.openNow,
       });
       if (searchId !== latestSearchId) {
         return; // 더 최근 검색이 있으면 늦게 온 응답은 버린다
@@ -146,15 +148,18 @@ async function search() {
       state.hospitals = result.hospitals;
       list.renderPrices({
         hospitals: result.hospitals, total: result.total, radius: state.radius, sort: state.sort, notice,
+        openNow: result.openNow,
       });
       priceCard.show({ local: result.local, reference: result.reference, radius: state.radius });
     } else {
-      const result = await searchHospitals({ ...state.center, radius: state.radius, clCd: state.clCd });
+      const result = await searchHospitals({
+        ...state.center, radius: state.radius, clCd: state.clCd, openNow: state.openNow,
+      });
       if (searchId !== latestSearchId) {
         return;
       }
       state.hospitals = result.hospitals;
-      list.render({ hospitals: state.hospitals, radius: state.radius, maxResults });
+      list.render({ hospitals: state.hospitals, radius: state.radius, maxResults, notice, openNow: result.openNow });
     }
     map?.showHospitals(state.hospitals);
   } catch {
@@ -187,16 +192,23 @@ function setPriceMode(on) {
   itemChosen.hidden = !on;
 }
 
+// 병원급만 보는 모드(가격, 지금 진료 중)에 들어갈 때 반경이 좁으면 넓힌다. 다음 검색에서 한 번 알린다.
+function widenRadiusForHospitals(message) {
+  if (state.radius < PRICE_MIN_RADIUS) {
+    state.radius = PRICE_DEFAULT_RADIUS;
+    pressOnly(radiusGroup, radiusGroup.querySelector(`button[data-radius="${PRICE_DEFAULT_RADIUS}"]`));
+    state.radiusNotice = message;
+  }
+}
+
 // 빠른 선택이나 검색(Task 7)으로 항목을 고른다. item: { code, label }
 function chooseItem(item) {
   const entering = state.item === null; // 가격 모드에 들어갈 때만 반경을 올린다
   state.item = item;
   itemChosenName.textContent = item.label;
   pressFeatured(item.code);
-  if (entering && state.radius < PRICE_MIN_RADIUS) {
-    state.radius = PRICE_DEFAULT_RADIUS;
-    pressOnly(radiusGroup, radiusGroup.querySelector(`button[data-radius="${PRICE_DEFAULT_RADIUS}"]`));
-    state.radiusNotice = '병원급 의료기관은 드물어서 반경을 5km로 넓혔어요.';
+  if (entering) {
+    widenRadiusForHospitals('병원급 의료기관은 드물어서 반경을 5km로 넓혔어요.');
   }
   setPriceMode(true);
   search();
@@ -289,6 +301,15 @@ sortGroup.addEventListener('click', event => {
   }
   pressOnly(sortGroup, button);
   state.sort = button.dataset.sort;
+  search();
+});
+
+openNowButton.addEventListener('click', () => {
+  state.openNow = !state.openNow;
+  openNowButton.setAttribute('aria-pressed', String(state.openNow));
+  if (state.openNow) {
+    widenRadiusForHospitals('지금 진료 중은 병원급만 판정해서 반경을 5km로 넓혔어요.');
+  }
   search();
 });
 

@@ -172,4 +172,13 @@ class HospitalPageTest {
 		assertThat(mvc.get().uri("/js/api.js")).hasStatusOk().bodyText().contains("fetchHospitalDetail");
 	}
 
+	@Test
+	void 지금_진료_중_버튼이_있다() {
+		assertThat(mvc.get().uri("/").header(HttpHeaders.ACCEPT, BROWSER_ACCEPT))
+				.hasStatusOk()
+				.bodyText()
+				.contains("id=\"open-now\"")
+				.contains("지금 진료 중");
+	}
+
 }

@@ -28,7 +28,7 @@ button, select { font: inherit; color: inherit; }
 .brand { padding: 14px 18px; border-right: 1px solid var(--rule); display: flex; flex-direction: column; justify-content: center; }
 .brand h1 { margin: 0; font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
 .brand p { margin: 2px 0 0; font-size: 11.5px; color: var(--muted); }
-.fields { display: grid; grid-template-columns: 150px 130px 250px minmax(0, 1fr); }
+.fields { display: grid; grid-template-columns: 150px 130px 250px minmax(0, 1fr) auto; }
 .field { border-right: 1px solid var(--rule); padding: 8px 12px 10px; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 .field:last-child { border-right: 0; }
 .field-name { font-size: 11px; font-weight: 500; color: var(--form-green); }
@@ -83,6 +83,8 @@ button, select { font: inherit; color: inherit; }
 .row-name { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .row-sub { display: flex; gap: 10px; font-size: 12.5px; color: var(--muted); }
 .row-address { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-status-open { color: var(--form-green); font-weight: 600; }
+.row-status-unknown { font-style: italic; }
 .row-dist { display: flex; align-items: center; justify-content: flex-end; padding-right: 16px; font-size: 17px; font-weight: 600; }
 .row-tel { display: inline-block; margin: -6px 0 10px 58px; font-size: 12.5px; color: var(--form-green); text-decoration: none; }
 .row-tel:hover { text-decoration: underline; }
