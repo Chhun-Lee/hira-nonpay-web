@@ -23,11 +23,11 @@ class EnumColumnSchemaTest {
 	TestEntityManager em;
 
 	@Test
-	void snapshot과_data_quality_issue에는_CHECK_제약이_없다() {
+	void enum_칸이_있는_테이블에는_CHECK_제약이_없다() {
 		List<?> checks = em.getEntityManager().createNativeQuery("""
 				select table_name from information_schema.table_constraints
 				where table_schema = database() and constraint_type = 'CHECK'
-				  and table_name in ('snapshot', 'data_quality_issue', 'nonpay_stat')
+				  and table_name in ('snapshot', 'data_quality_issue', 'nonpay_stat', 'hospital_detail', 'hospital_subject')
 				""").getResultList();
 
 		assertThat(checks).isEmpty();

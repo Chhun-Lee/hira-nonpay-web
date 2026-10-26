@@ -9,6 +9,9 @@ public enum SnapshotSource {
 	HOSPITAL_LIST,
 
 	/** 비급여진료비정보서비스(nonpay_item, nonpay_price, nonpay_stat 테이블) */
-	NONPAY
+	NONPAY,
+
+	/** 의료기관별상세정보서비스(hospital_detail, hospital_subject 테이블). 병원급만 */
+	HOSPITAL_DETAIL
 
 }
