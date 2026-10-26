@@ -150,7 +150,8 @@ class NonpayClientTest {
 	}
 
 	private static HiraProperties properties(HiraProperties.HospInfo hospInfo, HiraProperties.Nonpay nonpay) {
-		return new HiraProperties(wireMock.baseUrl(), SERVICE_KEY, Duration.ofSeconds(3), FAST_RETRY, hospInfo, nonpay);
+		return new HiraProperties(wireMock.baseUrl(), SERVICE_KEY, Duration.ofSeconds(3), FAST_RETRY, hospInfo, nonpay,
+				HiraProperties.Detail.DEFAULT);
 	}
 
 	private static void stub(String operation, Map<String, String> query, String fixture, int status, int delayMillis)

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<response>
+    <header><resultCode>00</resultCode><resultMsg>NORMAL SERVICE.</resultMsg></header>
+    <body>
+        <items>
+            <item>
+                <emyDayYn>N</emyDayYn><emyNgtYn>N</emyNgtYn>
+                <lunchWeek>12시30분~1시30분</lunchWeek>
+                <parkEtc>외래진료차량-주차권 확인시 무료/퇴원 차량-당일 4시간 무료</parkEtc>
+                <parkQty>100</parkQty><parkXpnsYn>N</parkXpnsYn>
+                <plcDir>영등포역방향 좌측</plcDir><plcDist>20M</plcDist><plcNm>영등포청과시장사거리</plcNm>
+                <rcvSat>08시00분~12시00분</rcvSat><rcvWeek>08시00분~17시00분</rcvWeek>
+                <trmtFriEnd>1700</trmtFriEnd><trmtFriStart>0830</trmtFriStart>
+                <trmtMonEnd>1700</trmtMonEnd><trmtMonStart>0830</trmtMonStart>
+                <trmtSatEnd>1230</trmtSatEnd><trmtSatStart>0830</trmtSatStart>
+                <trmtSunEnd>1230</trmtSunEnd><trmtSunStart>0830</trmtSunStart>
+                <trmtThuEnd>1700</trmtThuEnd><trmtThuStart>0830</trmtThuStart>
+                <trmtTueEnd>1700</trmtTueEnd><trmtTueStart>0830</trmtTueStart>
+                <trmtWedEnd>1700</trmtWedEnd><trmtWedStart>0830</trmtWedStart>
+            </item>
+        </items>
+        <numOfRows>100</numOfRows><pageNo>1</pageNo><totalCount>1</totalCount>
+    </body>
+</response>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<response>
+    <header><resultCode>00</resultCode><resultMsg>NORMAL SERVICE.</resultMsg></header>
+    <body>
+        <items>
+            <item><dgsbjtCd>01</dgsbjtCd><dgsbjtCdNm>내과</dgsbjtCdNm><dgsbjtPrSdrCnt>2</dgsbjtPrSdrCnt></item>
+            <item><dgsbjtCd>21</dgsbjtCd><dgsbjtCdNm>재활의학과</dgsbjtCdNm><dgsbjtPrSdrCnt>1</dgsbjtPrSdrCnt></item>
+        </items>
+        <numOfRows>2</numOfRows><pageNo>1</pageNo><totalCount>3</totalCount>
+    </body>
+</response>

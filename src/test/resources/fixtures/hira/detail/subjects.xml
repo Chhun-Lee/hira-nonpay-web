@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<response>
+    <header><resultCode>00</resultCode><resultMsg>NORMAL SERVICE.</resultMsg></header>
+    <body>
+        <items>
+            <item><cdiagDrCnt>0</cdiagDrCnt><dgsbjtCd>01</dgsbjtCd><dgsbjtCdNm>내과</dgsbjtCdNm><dgsbjtPrSdrCnt>1</dgsbjtPrSdrCnt></item>
+            <item><cdiagDrCnt>0</cdiagDrCnt><dgsbjtCd>09</dgsbjtCd><dgsbjtCdNm>마취통증의학과</dgsbjtCdNm><dgsbjtPrSdrCnt>3</dgsbjtPrSdrCnt></item>
+            <item><cdiagDrCnt>0</cdiagDrCnt><dgsbjtCd>12</dgsbjtCd><dgsbjtCdNm>안과</dgsbjtCdNm><dgsbjtPrSdrCnt>47</dgsbjtPrSdrCnt></item>
+            <item><cdiagDrCnt>0</cdiagDrCnt><dgsbjtCd>16</dgsbjtCd><dgsbjtCdNm>영상의학과</dgsbjtCdNm><dgsbjtPrSdrCnt>1</dgsbjtPrSdrCnt></item>
+            <item><cdiagDrCnt>0</cdiagDrCnt><dgsbjtCd>19</dgsbjtCd><dgsbjtCdNm>진단검사의학과</dgsbjtCdNm><dgsbjtPrSdrCnt>1</dgsbjtPrSdrCnt></item>
+        </items>
+        <numOfRows>100</numOfRows><pageNo>1</pageNo><totalCount>5</totalCount>
+    </body>
+</response>

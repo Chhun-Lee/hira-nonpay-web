@@ -1,5 +1,6 @@
 package dev.chhun.hospitalcompare.hira.config;
 
+import dev.chhun.hospitalcompare.hira.client.DetailClient;
 import dev.chhun.hospitalcompare.hira.client.HiraClient;
 import dev.chhun.hospitalcompare.hira.client.NonpayClient;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -24,6 +25,11 @@ class HiraClientConfig {
 	@Bean
 	NonpayClient nonpayClient(RestClient.Builder restClientBuilder, HiraProperties properties) {
 		return new NonpayClient(restClientBuilder, properties);
+	}
+
+	@Bean
+	DetailClient detailClient(RestClient.Builder restClientBuilder, HiraProperties properties) {
+		return new DetailClient(restClientBuilder, properties);
 	}
 
 }

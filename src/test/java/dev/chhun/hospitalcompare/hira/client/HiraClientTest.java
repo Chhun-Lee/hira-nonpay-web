@@ -64,7 +64,8 @@ class HiraClientTest {
 	void setUp() {
 		HiraProperties properties = new HiraProperties(wireMock.baseUrl(), SERVICE_KEY,
 				Duration.ofSeconds(3),
-				FAST_RETRY, new HiraProperties.HospInfo(Duration.ofSeconds(1), 4, 1000), HiraProperties.Nonpay.DEFAULT);
+				FAST_RETRY, new HiraProperties.HospInfo(Duration.ofSeconds(1), 4, 1000), HiraProperties.Nonpay.DEFAULT,
+				HiraProperties.Detail.DEFAULT);
 		client = new HiraClient(RestClient.builder(), properties);
 	}
 
@@ -238,7 +239,8 @@ class HiraClientTest {
 			Thread.ofVirtual().start(() -> truncateResponse(server));
 			HiraProperties properties = new HiraProperties("http://127.0.0.1:" + server.getLocalPort(), SERVICE_KEY,
 					Duration.ofSeconds(3),
-					FAST_RETRY, new HiraProperties.HospInfo(Duration.ofSeconds(1), 4, 1000), HiraProperties.Nonpay.DEFAULT);
+					FAST_RETRY, new HiraProperties.HospInfo(Duration.ofSeconds(1), 4, 1000), HiraProperties.Nonpay.DEFAULT,
+					HiraProperties.Detail.DEFAULT);
 			HiraClient truncatedClient = new HiraClient(RestClient.builder(), properties);
 
 			assertThatThrownBy(() -> truncatedClient.getHospBasisList("110001", 1, 2))
