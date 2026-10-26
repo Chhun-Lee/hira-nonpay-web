@@ -21,6 +21,21 @@ public enum QualityIssueType {
 	VALUE_TRUNCATED,
 
 	/** 통계 응답에 모르는 칸 접미사가 왔다. 그 칸은 버렸다(행정구역 개편 등) */
-	UNKNOWN_STAT_KEY
+	UNKNOWN_STAT_KEY,
+
+	/** 진료 시각이 HHmm이 아니거나 범위를 벗어나거나 시작·종료 중 하나만 있다. 그 요일을 "모름"으로 두고 적재했다 */
+	HOURS_INVALID,
+
+	/** 진료 시각 형식은 맞지만 종료가 시작보다 이르거나 같다(자정 넘김·12시간제·24시간·자리채움을 가릴 수 없음). 그 요일을 "모름"으로 두고 적재했다 */
+	HOURS_AMBIGUOUS,
+
+	/** 점심 문자열을 범위 하나로 읽지 못했다. 원문만 두고 종류를 UNKNOWN으로 적재했다 */
+	LUNCH_UNPARSED,
+
+	/** 휴진 안내가 휴진·진료 어느 쪽으로도 나뉘지 않았다. 원문만 두고 종류를 UNKNOWN으로 적재했다 */
+	CLOSED_NOTE_UNCLASSIFIED,
+
+	/** 전문의 수나 주차 대수가 0 이상의 정수가 아니다. 그 값만 비우고 적재했다 */
+	INVALID_COUNT
 
 }

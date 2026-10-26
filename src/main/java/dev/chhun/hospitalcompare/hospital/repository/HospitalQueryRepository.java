@@ -1,8 +1,12 @@
 package dev.chhun.hospitalcompare.hospital.repository;
 
 import dev.chhun.hospitalcompare.global.util.BoundingBox;
+import dev.chhun.hospitalcompare.hospital.dto.HospitalBasic;
+import dev.chhun.hospitalcompare.hospital.dto.HospitalRef;
 import dev.chhun.hospitalcompare.hospital.dto.NearbyHospital;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
@@ -14,6 +18,7 @@ import org.springframework.stereotype.Repository;
 public class HospitalQueryRepository {
 
 	// POINT는 (경도, 위도) 순서다. 박스로 좁힌 후보에서 원 밖을 버리고 거리순으로 자른다.
+	// 첫 %s는 종별 조건, 둘째 %s는 LIMIT(지금 진료 중 필터는 판정 뒤에 자르므로 비운다).
 	private static final String NEARBY = """
 			SELECT ykiho, name, cl_cd, cl_cd_nm, address, phone, latitude, longitude, doctor_count, distance
 			FROM (
@@ -27,7 +32,7 @@ public class HospitalQueryRepository {
 			) candidate
 			WHERE distance <= :radius
 			ORDER BY distance, ykiho
-			LIMIT :limit
+			%s
 			""";
 
 	private final JdbcClient jdbcClient;
@@ -38,10 +43,23 @@ public class HospitalQueryRepository {
 
 	public List<NearbyHospital> findNearby(long snapshotId, double latitude, double longitude, int radiusMeters,
 			String clCd, int limit) {
-		BoundingBox box = BoundingBox.around(latitude, longitude, radiusMeters);
-		String sql = NEARBY.formatted(clCd == null ? "" : "AND cl_cd = :clCd");
+		return nearby(snapshotId, latitude, longitude, radiusMeters, clCd, null, limit);
+	}
 
-		return jdbcClient.sql(sql)
+	/** 종별이 clCodes 안인 기관만, 상한 없이 거리순으로. 지금 진료 중 판정 뒤에 자른다 */
+	public List<NearbyHospital> findNearbyAmong(long snapshotId, double latitude, double longitude, int radiusMeters,
+			String clCd, Collection<String> clCodes) {
+		return nearby(snapshotId, latitude, longitude, radiusMeters, clCd, clCodes, null);
+	}
+
+	private List<NearbyHospital> nearby(long snapshotId, double latitude, double longitude, int radiusMeters,
+			String clCd, Collection<String> clCodes, Integer limit) {
+		BoundingBox box = BoundingBox.around(latitude, longitude, radiusMeters);
+		String filter = (clCd == null ? "" : "AND cl_cd = :clCd")
+				+ (clCodes == null ? "" : " AND cl_cd IN (:clCodes)");
+		String sql = NEARBY.formatted(filter, limit == null ? "" : "LIMIT :limit");
+
+		JdbcClient.StatementSpec spec = jdbcClient.sql(sql)
 				.param("snapshotId", snapshotId)
 				.param("lat", latitude)
 				.param("lng", longitude)
@@ -50,9 +68,14 @@ public class HospitalQueryRepository {
 				.param("minLng", box.minLongitude())
 				.param("maxLng", box.maxLongitude())
 				.param("clCd", clCd)
-				.param("radius", radiusMeters)
-				.param("limit", limit)
-				.query((rs, rowNum) -> new NearbyHospital(
+				.param("radius", radiusMeters);
+		if (clCodes != null) {
+			spec = spec.param("clCodes", clCodes);
+		}
+		if (limit != null) {
+			spec = spec.param("limit", limit);
+		}
+		return spec.query((rs, rowNum) -> new NearbyHospital(
 						rs.getString("ykiho"),
 						rs.getString("name"),
 						rs.getString("cl_cd"),
@@ -62,7 +85,45 @@ public class HospitalQueryRepository {
 						rs.getDouble("latitude"),
 						rs.getDouble("longitude"),
 						rs.getObject("doctor_count", Integer.class),
-						(int) Math.round(rs.getDouble("distance"))))
+						(int) Math.round(rs.getDouble("distance")),
+						null))
+				.list();
+	}
+
+	/** 유니크 키 (ykiho, snapshot_id)로 한 기관을 찾는다 */
+	public Optional<HospitalBasic> findBasic(long snapshotId, String ykiho) {
+		return jdbcClient.sql("""
+						SELECT ykiho, name, cl_cd, cl_cd_nm, address, phone, latitude, longitude, doctor_count
+						FROM hospital
+						WHERE ykiho = :ykiho AND snapshot_id = :snapshotId
+						""")
+				.param("snapshotId", snapshotId)
+				.param("ykiho", ykiho)
+				.query((rs, rowNum) -> new HospitalBasic(
+						rs.getString("ykiho"),
+						rs.getString("name"),
+						rs.getString("cl_cd"),
+						rs.getString("cl_cd_nm"),
+						rs.getString("address"),
+						rs.getString("phone"),
+						rs.getObject("latitude", Double.class),
+						rs.getObject("longitude", Double.class),
+						rs.getObject("doctor_count", Integer.class)))
+				.optional();
+	}
+
+	/** 상세정보 수집 대상: 종별이 clCodes 안인 기관. sgguCd가 있으면 그 시군구만. ykiho 순 */
+	public List<HospitalRef> findDetailTargets(long snapshotId, Collection<String> clCodes, String sgguCd) {
+		String sql = """
+				SELECT ykiho, cl_cd FROM hospital
+				WHERE snapshot_id = :snapshotId AND cl_cd IN (:clCodes) %s
+				ORDER BY ykiho
+				""".formatted(sgguCd == null ? "" : "AND sggu_cd = :sgguCd");
+		return jdbcClient.sql(sql)
+				.param("snapshotId", snapshotId)
+				.param("clCodes", clCodes)
+				.param("sgguCd", sgguCd)
+				.query((rs, rowNum) -> new HospitalRef(rs.getString("ykiho"), rs.getString("cl_cd")))
 				.list();
 	}
 

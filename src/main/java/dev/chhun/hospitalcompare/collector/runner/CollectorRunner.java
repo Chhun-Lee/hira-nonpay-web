@@ -1,7 +1,9 @@
 package dev.chhun.hospitalcompare.collector.runner;
 
 import dev.chhun.hospitalcompare.collector.dto.CollectResult;
+import dev.chhun.hospitalcompare.collector.dto.DetailCollectResult;
 import dev.chhun.hospitalcompare.collector.dto.NonpayCollectResult;
+import dev.chhun.hospitalcompare.collector.service.DetailCollector;
 import dev.chhun.hospitalcompare.collector.service.HospitalCollector;
 import dev.chhun.hospitalcompare.collector.service.NonpayCollector;
 import dev.chhun.hospitalcompare.snapshot.entity.SnapshotStatus;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Component;
  * <ul>
  * <li>인자 없음 또는 {@code --target=hospital}: 병원 목록 전국. {@code --sgguCd=110001}이면 그 시군구만(개발용)</li>
  * <li>{@code --target=nonpay}: 비급여 전 항목. {@code --items=ABZ010001,HE1180000}이면 그 항목만 시험 실행</li>
+ * <li>{@code --target=detail}: 병원급 상세정보(세부정보·진료과목) 전국. {@code --sgguCd=110001}이면 그 시군구 병원급만 시험 실행</li>
  * </ul>
  * 점(.)이 없는 옵션은 위 셋만 받는다. 오타 하나로 몇 시간짜리 전국 수집이 도는 것을 막는다.
  * 점이 있는 옵션(--hira.nonpay.max-concurrency=8 등)은 Spring 설정이다.
@@ -36,10 +39,13 @@ class CollectorRunner implements ApplicationRunner {
 
 	private final HospitalCollector hospitalCollector;
 	private final NonpayCollector nonpayCollector;
+	private final DetailCollector detailCollector;
 
-	CollectorRunner(HospitalCollector hospitalCollector, NonpayCollector nonpayCollector) {
+	CollectorRunner(HospitalCollector hospitalCollector, NonpayCollector nonpayCollector,
+			DetailCollector detailCollector) {
 		this.hospitalCollector = hospitalCollector;
 		this.nonpayCollector = nonpayCollector;
+		this.detailCollector = detailCollector;
 	}
 
 	@Override
@@ -60,8 +66,10 @@ class CollectorRunner implements ApplicationRunner {
 			runHospital(args);
 		} else if (target.equals("nonpay")) {
 			runNonpay(args);
+		} else if (target.equals("detail")) {
+			runDetail(args);
 		} else {
-			throw new IllegalArgumentException("--target은 hospital 또는 nonpay여야 합니다: " + target);
+			throw new IllegalArgumentException("--target은 hospital, nonpay, detail 중 하나여야 합니다: " + target);
 		}
 	}
 
@@ -83,7 +91,8 @@ class CollectorRunner implements ApplicationRunner {
 
 	private void runNonpay(ApplicationArguments args) {
 		if (args.containsOption("sgguCd")) {
-			throw new IllegalArgumentException("--sgguCd는 병원 목록 수집(--target=hospital)에서만 씁니다");
+			throw new IllegalArgumentException(
+					"--sgguCd는 --target=hospital(그 시군구만 수집)과 --target=detail(시험 실행)에서만 씁니다");
 		}
 		List<String> items = List.of();
 		if (args.containsOption("items")) {
@@ -110,6 +119,25 @@ class CollectorRunner implements ApplicationRunner {
 				result.deleted(), result.issues(), result.reason() == null ? "" : " | 사유 " + result.reason());
 		if (!result.succeeded()) {
 			throw new IllegalStateException("비급여 수집 실패: " + result.reason());
+		}
+	}
+
+	private void runDetail(ApplicationArguments args) {
+		if (args.containsOption("items")) {
+			throw new IllegalArgumentException("--items는 --target=nonpay에서만 씁니다");
+		}
+		DetailCollectResult result = detailCollector.collect(single(args, "sgguCd"));
+		log.info("상세정보 수집 {} 범위={} 스냅샷={} | 대상 {}곳 | 호출 {}회(재시도 {}, 초당 한도 {})"
+						+ " | 소요 {}ms(API 응답 합 {}ms, DB 합 {}ms) | 세부정보 {}곳(빈 응답 {}), 진료과목 {}행(없는 기관 {})"
+						+ " | 진료 시각 {}칸 중 읽지 못함 {} | 종별 채움 {} | 정리 {}행 | 품질 이슈 {}{}",
+				statusText(result.status()), result.scope(), result.snapshotId(), result.targets(),
+				result.calls(), result.retries(), result.perSecondLimited(),
+				result.elapsed().toMillis(), result.apiElapsed().toMillis(), result.dbElapsed().toMillis(),
+				result.detailRows(), result.emptyDetails(), result.subjectRows(), result.withoutSubjects(),
+				result.hourFields(), result.invalidHourFields(), result.coverage(), result.deleted(), result.issues(),
+				result.reason() == null ? "" : " | 사유 " + result.reason());
+		if (!result.succeeded()) {
+			throw new IllegalStateException("상세정보 수집 실패: " + result.reason());
 		}
 	}
 

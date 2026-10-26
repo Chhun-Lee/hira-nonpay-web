@@ -1,5 +1,10 @@
 package dev.chhun.hospitalcompare.hospital.dto;
 
+import dev.chhun.hospitalcompare.detail.dto.OpenStatus;
+
+/**
+ * @param openStatus 지금 진료 상태. 병원급만 있고 나머지는 null
+ */
 public record NearbyHospital(
 		String ykiho,
 		String name,
@@ -10,5 +15,12 @@ public record NearbyHospital(
 		double latitude,
 		double longitude,
 		Integer doctorCount,
-		int distanceMeters) {
+		int distanceMeters,
+		OpenStatus openStatus) {
+
+	public NearbyHospital withOpenStatus(OpenStatus status) {
+		return new NearbyHospital(ykiho, name, clCd, clCdNm, address, phone, latitude, longitude, doctorCount,
+				distanceMeters, status);
+	}
+
 }

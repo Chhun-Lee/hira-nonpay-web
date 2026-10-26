@@ -40,6 +40,7 @@ class HiraPropertiesTest {
 		assertThat(properties.retry()).isEqualTo(HiraProperties.Retry.DEFAULT);
 		assertThat(properties.hospInfo()).isEqualTo(new HiraProperties.HospInfo(Duration.ofSeconds(30), 4, 5));
 		assertThat(properties.nonpay()).isEqualTo(new HiraProperties.Nonpay(Duration.ofSeconds(120), 4, 5));
+		assertThat(properties.detail()).isEqualTo(new HiraProperties.Detail(Duration.ofSeconds(10), 4, 10));
 	}
 
 	@Test

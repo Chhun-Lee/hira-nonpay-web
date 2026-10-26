@@ -1,6 +1,12 @@
 package dev.chhun.hospitalcompare.nonpay.dto;
 
-/** 가격 비교 목록의 병원 하나. 가격은 원이다. */
+import dev.chhun.hospitalcompare.detail.dto.OpenStatus;
+
+/**
+ * 가격 비교 목록의 병원 하나. 가격은 원이다.
+ *
+ * @param openStatus 지금 진료 상태
+ */
 public record PricedHospital(
 		String ykiho,
 		String name,
@@ -12,12 +18,13 @@ public record PricedHospital(
 		double longitude,
 		int distanceMeters,
 		long minPrice,
-		long maxPrice) {
+		long maxPrice,
+		OpenStatus openStatus) {
 
-	public static PricedHospital of(NearbyPrice price) {
+	public static PricedHospital of(NearbyPrice price, OpenStatus openStatus) {
 		return new PricedHospital(price.ykiho(), price.name(), price.clCd(), price.clCdNm(), price.address(),
 				price.phone(), price.latitude(), price.longitude(), price.distanceMeters(), price.minPrice(),
-				price.maxPrice());
+				price.maxPrice(), openStatus);
 	}
 
 }

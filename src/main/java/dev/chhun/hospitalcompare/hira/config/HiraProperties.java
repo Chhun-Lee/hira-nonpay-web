@@ -14,6 +14,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * @param retry          재시도할 수 있는 오류의 재시도 정책(모든 서비스 공통)
  * @param hospInfo       병원정보서비스
  * @param nonpay         비급여진료비정보서비스
+ * @param detail         의료기관별상세정보서비스
  */
 @ConfigurationProperties(prefix = "hira", ignoreUnknownFields = false)
 public record HiraProperties(
@@ -22,7 +23,8 @@ public record HiraProperties(
 		@DefaultValue("3s") Duration connectTimeout,
 		@DefaultValue Retry retry,
 		@DefaultValue HospInfo hospInfo,
-		@DefaultValue Nonpay nonpay) {
+		@DefaultValue Nonpay nonpay,
+		@DefaultValue Detail detail) {
 
 	@ConstructorBinding
 	public HiraProperties {
@@ -37,13 +39,14 @@ public record HiraProperties(
 
 	/** 타임아웃·관문·재시도는 기본값으로 만든다. */
 	public HiraProperties(String baseUrl, String serviceKey) {
-		this(baseUrl, serviceKey, Duration.ofSeconds(3), Retry.DEFAULT, HospInfo.DEFAULT, Nonpay.DEFAULT);
+		this(baseUrl, serviceKey, Duration.ofSeconds(3), Retry.DEFAULT, HospInfo.DEFAULT, Nonpay.DEFAULT,
+				Detail.DEFAULT);
 	}
 
 	@Override
 	public String toString() {
 		return "HiraProperties[baseUrl=" + baseUrl + ", serviceKey=****, connectTimeout=" + connectTimeout
-				+ ", retry=" + retry + ", hospInfo=" + hospInfo + ", nonpay=" + nonpay + "]";
+				+ ", retry=" + retry + ", hospInfo=" + hospInfo + ", nonpay=" + nonpay + ", detail=" + detail + "]";
 	}
 
 	private static void validate(String prefix, int maxConcurrency, double requestsPerSecond) {
@@ -93,6 +96,23 @@ public record HiraProperties(
 
 		public Nonpay {
 			validate("hira.nonpay", maxConcurrency, requestsPerSecond);
+		}
+
+	}
+
+	/**
+	 * 의료기관별상세정보서비스. 호출당 0.1초 안팎이었다(2026-10-05 순차 탐색 440회, 최대 0.32초).
+	 * 초당 호출은 3-1 병원정보에서 한도 오류가 없던 10으로 두고, 시험 실행으로 확정한다.
+	 */
+	public record Detail(
+			@DefaultValue("10s") Duration readTimeout,
+			@DefaultValue("4") int maxConcurrency,
+			@DefaultValue("10") double requestsPerSecond) implements ServiceSettings {
+
+		public static final Detail DEFAULT = new Detail(Duration.ofSeconds(10), 4, 10);
+
+		public Detail {
+			validate("hira.detail", maxConcurrency, requestsPerSecond);
 		}
 
 	}

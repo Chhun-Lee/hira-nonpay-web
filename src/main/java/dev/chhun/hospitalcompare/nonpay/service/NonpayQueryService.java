@@ -1,5 +1,9 @@
 package dev.chhun.hospitalcompare.nonpay.service;
 
+import dev.chhun.hospitalcompare.detail.dto.OpenNowSummary;
+import dev.chhun.hospitalcompare.detail.dto.OpenState;
+import dev.chhun.hospitalcompare.detail.dto.OpenStatus;
+import dev.chhun.hospitalcompare.detail.service.OpenStatusService;
 import dev.chhun.hospitalcompare.hospital.service.HospitalQueryService;
 import dev.chhun.hospitalcompare.nonpay.config.NonpayUiProperties;
 import dev.chhun.hospitalcompare.nonpay.dto.NearbyPrice;
@@ -18,6 +22,7 @@ import dev.chhun.hospitalcompare.snapshot.entity.SnapshotSource;
 import dev.chhun.hospitalcompare.snapshot.entity.SnapshotStatus;
 import dev.chhun.hospitalcompare.snapshot.repository.SnapshotRepository;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +30,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -53,12 +59,14 @@ public class NonpayQueryService {
 	private final SnapshotRepository snapshotRepository;
 	private final NonpayQueryRepository nonpayQueryRepository;
 	private final NonpayUiProperties properties;
+	private final OpenStatusService openStatusService;
 
 	public NonpayQueryService(SnapshotRepository snapshotRepository, NonpayQueryRepository nonpayQueryRepository,
-			NonpayUiProperties properties) {
+			NonpayUiProperties properties, OpenStatusService openStatusService) {
 		this.snapshotRepository = snapshotRepository;
 		this.nonpayQueryRepository = nonpayQueryRepository;
 		this.properties = properties;
+		this.openStatusService = openStatusService;
 	}
 
 	/** 비급여 ACTIVE 기준일. 비급여 ACTIVE가 없으면 empty */
@@ -92,19 +100,26 @@ public class NonpayQueryService {
 				.toList());
 	}
 
+	public Optional<PriceCompareResponse> comparePrices(String itemCd, double latitude, double longitude,
+			int radiusMeters, PriceSort sort) {
+		return comparePrices(itemCd, latitude, longitude, radiusMeters, sort, false);
+	}
+
 	/**
-	 * 반경 안에서 이 항목 가격을 공개한 병원과 기준값. 반경 기준값과 total은 500곳으로 자르기 전 전체로 센다.
+	 * 반경 안에서 이 항목 가격을 공개한 병원과 기준값. 반경 기준값과 total은 500곳으로 자르기 전, 지금 진료 중 필터 전 전체로 센다.
 	 *
+	 * @param openNow true면 지금 진료 중인 병원만 남긴다(자르기 전에 거른다)
 	 * @return 모르는 항목 코드면 empty. 비급여 ACTIVE가 없으면 빈 결과
 	 */
 	public Optional<PriceCompareResponse> comparePrices(String itemCd, double latitude, double longitude,
-			int radiusMeters, PriceSort sort) {
+			int radiusMeters, PriceSort sort, boolean openNow) {
+		LocalDateTime at = openStatusService.now();
 		Optional<Snapshot> hospitals = active(SnapshotSource.HOSPITAL_LIST);
 		LocalDate hospitalBaseDate = hospitals.map(Snapshot::getBaseDate).orElse(null);
 		Optional<Snapshot> nonpay = active(SnapshotSource.NONPAY);
 		if (nonpay.isEmpty()) {
 			return Optional.of(new PriceCompareResponse(new PriceCompareResponse.BaseDates(hospitalBaseDate, null),
-					null, 0, List.of(), null, null));
+					null, 0, List.of(), null, null, openNow ? new OpenNowSummary(at, 0, 0) : null));
 		}
 		long nonpayId = nonpay.get().getId();
 		Optional<NonpayItemSummary> item = nonpayQueryRepository.findItem(nonpayId, itemCd);
@@ -115,18 +130,32 @@ public class NonpayQueryService {
 				.map(snapshot -> nonpayQueryRepository.findNearbyPrices(nonpayId, snapshot.getId(), itemCd, latitude,
 						longitude, radiusMeters))
 				.orElseGet(List::of);
+		Map<String, OpenStatus> statuses = openStatusService.statuses(
+				nearby.stream().map(NearbyPrice::ykiho).toList(), at);
+		Stream<NearbyPrice> shown = nearby.stream();
+		OpenNowSummary summary = null;
+		if (openNow) {
+			List<NearbyPrice> open = nearby.stream()
+					.filter(price -> statuses.get(price.ykiho()).status() == OpenState.OPEN)
+					.toList();
+			int unknown = (int) nearby.stream()
+					.filter(price -> statuses.get(price.ykiho()).status() == OpenState.UNKNOWN)
+					.count();
+			summary = new OpenNowSummary(at, open.size(), unknown);
+			shown = open.stream();
+		}
 		String sidoCd = nearby.stream().min(NEAREST).map(NearbyPrice::sidoCd).orElse(null);
 		return Optional.of(new PriceCompareResponse(
 				new PriceCompareResponse.BaseDates(hospitalBaseDate, nonpay.get().getBaseDate()),
 				NonpayItemResponse.of(item.get(), null),
 				nearby.size(),
-				nearby.stream()
-						.sorted(sort.order())
+				shown.sorted(sort.order())
 						.limit(HospitalQueryService.MAX_RESULTS)
-						.map(PricedHospital::of)
+						.map(price -> PricedHospital.of(price, statuses.get(price.ykiho())))
 						.toList(),
 				PriceStats.of(nearby, NearbyPrice::minPrice, NearbyPrice::maxPrice).orElse(null),
-				reference(nonpayQueryRepository.findStats(nonpayId, itemCd), sidoCd)));
+				reference(nonpayQueryRepository.findStats(nonpayId, itemCd), sidoCd),
+				summary));
 	}
 
 	private static ReferencePrices reference(List<NonpayStatRecord> stats, String sidoCd) {

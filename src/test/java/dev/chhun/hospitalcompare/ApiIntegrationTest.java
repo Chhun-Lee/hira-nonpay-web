@@ -11,13 +11,13 @@ import org.springframework.test.context.ActiveProfiles;
 
 /**
  * api 프로파일 통합 테스트. 이 어노테이션을 쓰는 테스트는 Spring 컨텍스트와 MySQL 컨테이너를 공유한다.
- * 데이터는 각 테스트가 @BeforeEach에서 지우고 다시 넣는다.
+ * 데이터는 각 테스트가 @BeforeEach에서 지우고 다시 넣는다. 시계는 2026-10-07(수) 10:00 한국 시간으로 고정한다.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @SpringBootTest(properties = "kakao.map.js-key=test-kakao-key")
 @AutoConfigureMockMvc
 @ActiveProfiles("api")
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, FixedClockConfiguration.class})
 public @interface ApiIntegrationTest {
 }

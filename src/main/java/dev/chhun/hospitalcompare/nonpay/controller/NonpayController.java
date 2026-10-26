@@ -53,7 +53,8 @@ class NonpayController {
 	}
 
 	@Operation(summary = "항목별 가격 비교",
-			description = "반경 안에서 이 항목 가격을 공개한 병원(최대 500곳)과 반경·심평원 기준값. 모르는 항목이면 404.")
+			description = "반경 안에서 이 항목 가격을 공개한 병원(최대 500곳)과 반경·심평원 기준값. 모르는 항목이면 404."
+					+ " openNow=true면 지금 진료 중인 병원만(기준값은 필터 전 전체).")
 	@GetMapping("/prices")
 	PriceCompareResponse comparePrices(
 			@Parameter(description = "비급여 항목 코드", example = "HE1110000")
@@ -65,8 +66,10 @@ class NonpayController {
 			@Parameter(description = "반경(m), 1 ~ 20,000", example = "5000")
 			@RequestParam @Min(1) @Max(20_000) int radius,
 			@Parameter(description = "price(가격순, 기본) 또는 distance(거리순)")
-			@RequestParam(defaultValue = "price") @Pattern(regexp = "price|distance") String sort) {
-		return nonpayQueryService.comparePrices(itemCd, lat, lng, radius, PriceSort.from(sort))
+			@RequestParam(defaultValue = "price") @Pattern(regexp = "price|distance") String sort,
+			@Parameter(description = "true면 지금 진료 중인 병원만. 반경 기준값과 total은 필터 전 전체로 센다")
+			@RequestParam(defaultValue = "false") boolean openNow) {
+		return nonpayQueryService.comparePrices(itemCd, lat, lng, radius, PriceSort.from(sort), openNow)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "비급여 항목이 없습니다: " + itemCd));
 	}
 

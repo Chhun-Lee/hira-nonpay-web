@@ -1,6 +1,7 @@
 package dev.chhun.hospitalcompare.nonpay.repository;
 
 import dev.chhun.hospitalcompare.global.util.BoundingBox;
+import dev.chhun.hospitalcompare.nonpay.dto.HospitalNonpayItem;
 import dev.chhun.hospitalcompare.nonpay.dto.NearbyPrice;
 import dev.chhun.hospitalcompare.nonpay.dto.NonpayItemSummary;
 import dev.chhun.hospitalcompare.nonpay.dto.NonpayStatRecord;
@@ -77,6 +78,16 @@ public class NonpayQueryRepository {
 			WHERE snapshot_id = :snapshotId
 			  AND npay_cd = :itemCd
 			ORDER BY dimension, dim_key
+			""";
+
+	// 병원 상세용. (snapshot_id, ykiho) 인덱스로 그 병원의 가격 행만 읽는다. 항목 이름이 없는 코드도 가격은 보여 준다.
+	private static final String HOSPITAL_ITEMS = """
+			SELECT p.npay_cd, i.npay_kor_nm, i.mdiv_cd_nm, p.min_price, p.max_price
+			FROM nonpay_price p
+			LEFT JOIN nonpay_item i ON i.snapshot_id = p.snapshot_id AND i.npay_cd = p.npay_cd
+			WHERE p.snapshot_id = :snapshotId
+			  AND p.ykiho = :ykiho
+			ORDER BY i.mdiv_cd_nm, i.npay_kor_nm, p.npay_cd
 			""";
 
 	private final JdbcClient jdbcClient;
@@ -171,6 +182,16 @@ public class NonpayQueryRepository {
 				rs.getString("npay_kor_nm"),
 				rs.getString("mdiv_cd_nm"),
 				rs.getLong("hospital_count"));
+	}
+
+	/** 한 병원이 공개한 비급여 항목과 가격. 중분류 → 이름 → 코드 순 */
+	public List<HospitalNonpayItem> findHospitalItems(long nonpaySnapshotId, String ykiho) {
+		return jdbcClient.sql(HOSPITAL_ITEMS)
+				.param("snapshotId", nonpaySnapshotId)
+				.param("ykiho", ykiho)
+				.query((rs, rowNum) -> HospitalNonpayItem.of(rs.getString("npay_cd"), rs.getString("npay_kor_nm"),
+						rs.getString("mdiv_cd_nm"), rs.getLong("min_price"), rs.getLong("max_price")))
+				.list();
 	}
 
 }

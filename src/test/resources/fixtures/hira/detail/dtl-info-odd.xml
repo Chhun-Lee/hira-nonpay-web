@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- 실제 응답에서 본 이상값을 한 기관에 모았다: 수요일 종료가 콜론 형식, 토요일은 시작만, 점심+저녁, 공휴일 안내 "개별공지", 주차 대수가 글자 -->
+<response>
+    <header><resultCode>00</resultCode><resultMsg>NORMAL SERVICE.</resultMsg></header>
+    <body>
+        <items>
+            <item>
+                <emyDayYn>Y</emyDayYn><emyNgtYn>N</emyNgtYn>
+                <lunchWeek>점심 : 13시00분 ~ 14시00분, 저녁 : 18시00분 ~ 19시00분</lunchWeek>
+                <noTrmtHoli>개별공지</noTrmtHoli><noTrmtSun>전부 휴진</noTrmtSun>
+                <parkQty>약 50</parkQty><parkXpnsYn>Y</parkXpnsYn>
+                <trmtMonStart>0900</trmtMonStart><trmtMonEnd>1800</trmtMonEnd>
+                <trmtTueStart>0900</trmtTueStart><trmtTueEnd>1800</trmtTueEnd>
+                <trmtWedStart>0900</trmtWedStart><trmtWedEnd>18:00</trmtWedEnd>
+                <trmtThuStart>0900</trmtThuStart><trmtThuEnd>1800</trmtThuEnd>
+                <trmtFriStart>0900</trmtFriStart><trmtFriEnd>1800</trmtFriEnd>
+                <trmtSatStart>0900</trmtSatStart>
+            </item>
+        </items>
+        <numOfRows>100</numOfRows><pageNo>1</pageNo><totalCount>1</totalCount>
+    </body>
+</response>

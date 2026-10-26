@@ -27,6 +27,12 @@ hira:
     read-timeout: 120s
     max-concurrency: 4
     requests-per-second: 5
+  detail:
+    # 호출당 0.1초 안팎이었다(2026-10-05 순차 탐색 440회, 최대 0.32초). 넉넉히 둔다.
+    read-timeout: 10s
+    max-concurrency: 4
+    # 3-1 병원정보에서 초당 10까지 한도 오류(23)가 없었다. 시험 실행 두 번으로 확정한다.
+    requests-per-second: 10
 
 collector:
   # 목록 API 한 페이지 요청 크기. 1000건까지 받아 준다(2026-10-03 실측).
@@ -46,3 +52,12 @@ collector:
       min-count-ratio: 0.8
       max-invalid-ratio: 0.05
       max-empty-item-ratio: 0.05
+  detail:
+    # 기관 하나의 응답은 최대 35행이었다(2026-10-05 탐색). 한 페이지에 다 받는다.
+    num-of-rows: 100
+    # 전국 8,444회가 15분 남짓 걸려 1분마다 진행을 남긴다.
+    progress-interval: 1m
+    gate:
+      max-empty-subject-ratio: 0.05
+      min-count-ratio: 0.8
+      max-invalid-hours-ratio: 0.05

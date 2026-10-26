@@ -13,10 +13,13 @@ export function fetchRegions() {
   return getJson('/api/regions', null, '지역 목록');
 }
 
-export function searchHospitals({ latitude, longitude, radius, clCd }) {
+export function searchHospitals({ latitude, longitude, radius, clCd, openNow }) {
   const params = new URLSearchParams({ lat: String(latitude), lng: String(longitude), radius: String(radius) });
   if (clCd) {
     params.set('clCd', clCd);
+  }
+  if (openNow) {
+    params.set('openNow', 'true');
   }
   return getJson('/api/hospitals', params, '병원 검색');
 }
@@ -29,7 +32,7 @@ export function searchItems(query) {
   return getJson('/api/noncovered/items', new URLSearchParams({ q: query }), '항목 검색');
 }
 
-export function comparePrices({ itemCd, latitude, longitude, radius, sort }) {
+export function comparePrices({ itemCd, latitude, longitude, radius, sort, openNow }) {
   const params = new URLSearchParams({
     itemCd,
     lat: String(latitude),
@@ -37,5 +40,13 @@ export function comparePrices({ itemCd, latitude, longitude, radius, sort }) {
     radius: String(radius),
     sort,
   });
+  if (openNow) {
+    params.set('openNow', 'true');
+  }
   return getJson('/api/noncovered/prices', params, '가격 비교');
+}
+
+// 병원 상세(F4). 없는 병원이면 404로 실패한다.
+export function fetchHospitalDetail(ykiho) {
+  return getJson(`/api/hospitals/${encodeURIComponent(ykiho)}`, null, '병원 상세');
 }

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 import dev.chhun.hospitalcompare.ApiIntegrationTest;
+import dev.chhun.hospitalcompare.nonpay.dto.HospitalNonpayItem;
 import dev.chhun.hospitalcompare.nonpay.dto.NearbyPrice;
 import dev.chhun.hospitalcompare.nonpay.dto.NonpayItemSummary;
 import dev.chhun.hospitalcompare.nonpay.dto.NonpayStatRecord;
@@ -142,6 +143,23 @@ class NonpayQueryRepositoryTest {
 				.containsExactly(tuple(StatDimension.CL_TYPE, "All"), tuple(StatDimension.SIDO, "Sl"));
 		assertThat(stats.getFirst().medianPrice()).isEqualTo(456450L);
 		assertThat(stats.getFirst().stdDate()).isEqualTo(LocalDate.of(2026, 9, 3));
+	}
+
+	@Test
+	void 한_병원이_공개한_비급여를_중분류_이름_순으로_준다() {
+		insertPrice(nonpayTrial, "PCT0001", "Y-NEAR", 1, 1, "110000");
+
+		List<HospitalNonpayItem> items = repository.findHospitalItems(nonpayActive, "Y-NEAR");
+
+		// 검사료(ㄱ) → 상급병실료(ㅅ) → 자기공명영상진단료(ㅈ). 시험 실행 스냅샷의 가격은 섞이지 않는다.
+		assertThat(items).extracting(HospitalNonpayItem::code).containsExactly("PCT0001", "ABZ010001", MRI);
+		assertThat(items.getFirst().minPrice()).isEqualTo(1000);
+		assertThat(items.get(1)).isEqualTo(
+				new HospitalNonpayItem("ABZ010001", "상급병실료/1인실", "상급병실료", "1인실", 200000, 200000));
+		assertThat(items.get(2).detail()).isEqualTo("척추-요천추/일반");
+		assertThat(items.get(2).minPrice()).isEqualTo(400000);
+		assertThat(items.get(2).maxPrice()).isEqualTo(450000);
+		assertThat(repository.findHospitalItems(nonpayActive, "Y-NONE")).isEmpty();
 	}
 
 	private long insertSnapshot(String source, String status) {

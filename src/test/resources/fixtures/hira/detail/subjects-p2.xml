@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<response>
+    <header><resultCode>00</resultCode><resultMsg>NORMAL SERVICE.</resultMsg></header>
+    <body>
+        <items>
+            <item><dgsbjtCd>23</dgsbjtCd><dgsbjtCdNm>가정의학과</dgsbjtCdNm><dgsbjtPrSdrCnt>0</dgsbjtPrSdrCnt></item>
+        </items>
+        <numOfRows>2</numOfRows><pageNo>2</pageNo><totalCount>3</totalCount>
+    </body>
+</response>

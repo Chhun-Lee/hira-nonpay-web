@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDate;
@@ -12,10 +13,12 @@ import java.time.LocalDate;
 /**
  * 한 병원의 한 항목 가격(스냅샷별). 병원 이름과 좌표는 두지 않고 비교할 때 ACTIVE 병원 목록과 ykiho로 잇는다.
  * 유니크 키 순서(snapshot_id, npay_cd, ykiho)가 곧 "이 스냅샷의 이 항목" 조회와 스냅샷 삭제용 인덱스다.
+ * (snapshot_id, ykiho) 인덱스는 병원 상세의 "이 병원의 비급여 목록" 조회용이다(3-4).
  */
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(
-		name = "uk_nonpay_price_snapshot_code_ykiho", columnNames = {"snapshot_id", "npay_cd", "ykiho"}))
+		name = "uk_nonpay_price_snapshot_code_ykiho", columnNames = {"snapshot_id", "npay_cd", "ykiho"}),
+		indexes = @Index(name = "idx_nonpay_price_snapshot_ykiho", columnList = "snapshot_id, ykiho"))
 public class NonpayPrice {
 
 	@Id

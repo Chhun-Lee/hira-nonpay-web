@@ -18,7 +18,7 @@ class ApiDocsTest {
 		assertThat(mvc.get().uri("/v3/api-docs"))
 				.hasStatusOk()
 				.bodyJson().extractingPath("$.paths").asMap()
-				.containsKeys("/api/hospitals", "/api/meta/snapshot");
+				.containsKeys("/api/hospitals", "/api/hospitals/{ykiho}", "/api/meta/snapshot");
 	}
 
 	@Test
