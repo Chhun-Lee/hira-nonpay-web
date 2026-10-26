@@ -143,4 +143,33 @@ class HospitalPageTest {
 		assertThat(mvc.get().uri("/js/item-search.js")).hasStatusOk().bodyText().contains("createItemSearch");
 	}
 
+	@Test
+	void 하단에_상세_기준일을_보여_주고_없으면_수집_전() {
+		assertThat(mvc.get().uri("/").header(HttpHeaders.ACCEPT, BROWSER_ACCEPT))
+				.hasStatusOk()
+				.bodyText().contains("· 상세 수집 전");
+
+		jdbcTemplate.update("""
+				insert into snapshot (source, status, base_date, record_count)
+				values ('HOSPITAL_DETAIL', 'ACTIVE', '2026-10-06', 0)
+				""");
+
+		assertThat(mvc.get().uri("/").header(HttpHeaders.ACCEPT, BROWSER_ACCEPT))
+				.hasStatusOk()
+				.bodyText().contains("· 상세 2026-10-06");
+	}
+
+	@Test
+	void 상세_패널_자리와_스크립트가_있다() {
+		assertThat(mvc.get().uri("/").header(HttpHeaders.ACCEPT, BROWSER_ACCEPT))
+				.hasStatusOk()
+				.bodyText()
+				.contains("id=\"detail\"")
+				.contains("id=\"detail-back\"")
+				.contains("id=\"detail-body\"")
+				.contains("data-hira-nonpay-url=\"" + nonpayUiProperties.hiraNonpayUrl() + "\"");
+		assertThat(mvc.get().uri("/js/detail-panel.js")).hasStatusOk().bodyText().contains("createDetailPanel");
+		assertThat(mvc.get().uri("/js/api.js")).hasStatusOk().bodyText().contains("fetchHospitalDetail");
+	}
+
 }

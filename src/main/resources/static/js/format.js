@@ -23,3 +23,30 @@ export function formatPrice(min, max) {
     ? `${won.format(min)}원`
     : `${won.format(min)}~​${won.format(max)}원`;
 }
+
+// 지금 진료 상태 글자. 진료 끝이면 사유(점심시간, 오늘 휴진 등)를 그대로 쓴다. 상태가 없으면(의원급) null
+export function statusLabel(openStatus) {
+  if (!openStatus) {
+    return null;
+  }
+  if (openStatus.status === 'OPEN') {
+    return '진료 중';
+  }
+  if (openStatus.status === 'CLOSED') {
+    return openStatus.reason ?? '진료 끝';
+  }
+  return '확인 필요';
+}
+
+// 서버 판정 시각("2026-10-07T14:05:00", 한국 시간) → "14:05"
+export function formatClock(localDateTime) {
+  return localDateTime ? localDateTime.slice(11, 16) : '';
+}
+
+const DAY_OF_WEEK = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+
+// 서버 판정 시각의 요일(서버 DayOfWeek 이름). 브라우저 시간대와 무관하게 날짜 부분으로 계산한다
+export function dayOfWeek(localDateTime) {
+  const [year, month, day] = localDateTime.slice(0, 10).split('-').map(Number);
+  return DAY_OF_WEEK[new Date(Date.UTC(year, month - 1, day)).getUTCDay()];
+}

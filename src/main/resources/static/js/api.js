@@ -39,3 +39,8 @@ export function comparePrices({ itemCd, latitude, longitude, radius, sort }) {
   });
   return getJson('/api/noncovered/prices', params, '가격 비교');
 }
+
+// 병원 상세(F4). 없는 병원이면 404로 실패한다.
+export function fetchHospitalDetail(ykiho) {
+  return getJson(`/api/hospitals/${encodeURIComponent(ykiho)}`, null, '병원 상세');
+}

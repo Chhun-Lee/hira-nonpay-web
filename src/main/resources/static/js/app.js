@@ -1,6 +1,8 @@
 // 화면 상태와 이벤트 연결. 검색 중심·반경과 종별(또는 비급여 항목)을 기준으로 목록과 지도를 다시 그린다.
 // 비급여 항목을 고르면 가격 모드가 되고, 항목을 지우면 병원 찾기(3-1)로 돌아간다.
-import { comparePrices, fetchFeaturedItems, fetchRegions, searchHospitals } from './api.js';
+// 병원을 누르면 목록 칸이 상세 패널(F4)로 바뀐다. ← 목록·브라우저 뒤로가기로 돌아온다.
+import { comparePrices, fetchFeaturedItems, fetchHospitalDetail, fetchRegions, searchHospitals } from './api.js';
+import { createDetailPanel } from './detail-panel.js';
 import { createItemSearch } from './item-search.js';
 import { loadKakaoSdk } from './kakao-sdk.js';
 import { createListView } from './list-view.js';
@@ -10,6 +12,7 @@ import { createPriceCard } from './price-card.js';
 const FALLBACK_CENTER = { latitude: 37.5665, longitude: 126.978 }; // 수집된 지역이 없을 때: 서울시청
 const LOAD_ERROR = '병원 목록을 불러오지 못했어요. 잠시 후 다시 검색해 주세요.';
 const PRICE_LOAD_ERROR = '가격을 불러오지 못했어요. 잠시 후 다시 검색해 주세요.';
+const DETAIL_LOAD_ERROR = '병원 정보를 불러오지 못했어요. 잠시 후 다시 눌러 주세요.';
 const MAP_LOAD_TIMEOUT_MS = 5000;
 const PRICE_MIN_RADIUS = 3000; // 가격 모드에서 반경이 이보다 좁으면
 const PRICE_DEFAULT_RADIUS = 5000; // 이 반경으로 넓힌다(병원급 의료기관은 드물다)
@@ -30,6 +33,10 @@ const sortGroup = document.getElementById('price-sort');
 const clinicNotice = document.getElementById('clinic-notice');
 const searchHereButton = document.getElementById('search-here');
 const mapError = document.getElementById('map-error');
+const listSection = document.querySelector('section.list');
+const rowsElement = document.getElementById('rows');
+const detailSection = document.getElementById('detail');
+const detailBack = document.getElementById('detail-back');
 
 const state = {
   center: FALLBACK_CENTER,
@@ -51,10 +58,73 @@ const list = createListView({
   onSelect: ykiho => select(ykiho, 'list'),
 });
 const priceCard = createPriceCard(document.getElementById('price-card'));
+const detailPanel = createDetailPanel({
+  body: document.getElementById('detail-body'),
+  hiraNonpayUrl: root.dataset.hiraNonpayUrl,
+  onChooseItem: item => {
+    listScroll = { rows: 0, window: 0 }; // 새 항목의 목록은 맨 위부터 본다
+    closeDetail();
+    chooseItem(item);
+  },
+});
+let detailYkiho = null; // 열려 있는 상세의 ykiho. 닫혀 있으면 null
+let latestDetailId = 0;
+let listScroll = { rows: 0, window: 0 }; // 상세를 열 때의 목록 스크롤 위치
 
 function select(ykiho, from) {
   list.select(ykiho, { scroll: from === 'map' });
   map?.select(ykiho, { pan: from === 'list' });
+  openDetail(ykiho);
+}
+
+// 상세를 연다. 목록에서 처음 열 때만 기록을 쌓고, 상세를 연 채 다른 병원을 누르면 기록을 바꾼다(뒤로가기 한 번에 목록).
+function openDetail(ykiho) {
+  if (detailYkiho === null) {
+    listScroll = { rows: rowsElement.scrollTop, window: window.scrollY };
+    history.pushState({ detail: ykiho }, '');
+  } else if (detailYkiho !== ykiho) {
+    history.replaceState({ detail: ykiho }, '');
+  }
+  showDetail(ykiho);
+}
+
+async function showDetail(ykiho) {
+  detailYkiho = ykiho;
+  listSection.hidden = true;
+  detailSection.hidden = false;
+  const requestId = ++latestDetailId;
+  detailPanel.showLoading();
+  try {
+    const hospital = await fetchHospitalDetail(ykiho);
+    if (requestId !== latestDetailId) {
+      return; // 더 최근에 고른 병원이 있거나 이미 닫았으면 늦게 온 응답은 버린다
+    }
+    detailPanel.render(hospital);
+  } catch {
+    if (requestId === latestDetailId) {
+      detailPanel.showError(DETAIL_LOAD_ERROR);
+    }
+  }
+}
+
+// 패널을 감추고 목록을 그 스크롤 위치로 되돌린다.
+function hideDetail() {
+  if (detailYkiho === null) {
+    return;
+  }
+  detailYkiho = null;
+  latestDetailId++;
+  detailSection.hidden = true;
+  listSection.hidden = false;
+  rowsElement.scrollTop = listScroll.rows;
+  window.scrollTo(0, listScroll.window);
+}
+
+// ← 목록 버튼과 비급여 항목 선택: 쌓아 둔 기록을 되돌려 popstate에서 닫는다(뒤로가기와 같은 길).
+function closeDetail() {
+  if (detailYkiho !== null) {
+    history.back();
+  }
 }
 
 async function search() {
@@ -229,6 +299,20 @@ searchHereButton.addEventListener('click', () => {
   }
 });
 
+detailBack.addEventListener('click', closeDetail);
+
+window.addEventListener('popstate', event => {
+  const ykiho = event.state?.detail;
+  if (ykiho) {
+    if (detailYkiho === null) {
+      listScroll = { rows: rowsElement.scrollTop, window: window.scrollY };
+    }
+    showDetail(ykiho); // 앞으로 가기로 다시 열 때
+  } else {
+    hideDetail();
+  }
+});
+
 async function loadRegions() {
   try {
     state.regions = await fetchRegions();
@@ -295,6 +379,9 @@ async function loadMap() {
 }
 
 async function start() {
+  if (history.state?.detail) {
+    history.replaceState(null, '');
+  }
   loadMap(); // 기다리지 않는다: 지도 SDK가 늦거나 실패해도 목록 검색은 바로 시작한다
   loadFeatured(); // 기다리지 않는다: 빠른 선택이 늦어도 병원 찾기는 바로 된다
   await loadRegions();

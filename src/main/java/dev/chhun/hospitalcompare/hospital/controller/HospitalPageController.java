@@ -1,5 +1,6 @@
 package dev.chhun.hospitalcompare.hospital.controller;
 
+import dev.chhun.hospitalcompare.detail.service.HospitalDetailService;
 import dev.chhun.hospitalcompare.global.config.KakaoMapProperties;
 import dev.chhun.hospitalcompare.hospital.dto.SnapshotResponse;
 import dev.chhun.hospitalcompare.hospital.service.HospitalQueryService;
@@ -13,7 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 /**
- * 반경 병원 검색 화면. 서버는 페이지 틀과 카카오 키·두 기준일·결과 상한·심평원 안내 주소만 넣고, 검색은 브라우저 JS가 JSON API로 한다.
+ * 반경 병원 검색 화면. 서버는 페이지 틀과 카카오 키·세 기준일·결과 상한·심평원 안내 주소만 넣고, 검색은 브라우저 JS가 JSON API로 한다.
  */
 @Hidden
 @Controller
@@ -25,15 +26,17 @@ class HospitalPageController {
 	private final String defaultSgguCd;
 	private final NonpayQueryService nonpayQueryService;
 	private final NonpayUiProperties nonpayUiProperties;
+	private final HospitalDetailService hospitalDetailService;
 
 	HospitalPageController(HospitalQueryService hospitalQueryService, KakaoMapProperties kakaoMapProperties,
 			@Value("${ui.default-sggu-cd:110001}") String defaultSgguCd, NonpayQueryService nonpayQueryService,
-			NonpayUiProperties nonpayUiProperties) {
+			NonpayUiProperties nonpayUiProperties, HospitalDetailService hospitalDetailService) {
 		this.hospitalQueryService = hospitalQueryService;
 		this.kakaoMapProperties = kakaoMapProperties;
 		this.defaultSgguCd = defaultSgguCd;
 		this.nonpayQueryService = nonpayQueryService;
 		this.nonpayUiProperties = nonpayUiProperties;
+		this.hospitalDetailService = hospitalDetailService;
 	}
 
 	@GetMapping("/")
@@ -44,6 +47,7 @@ class HospitalPageController {
 		model.addAttribute("defaultSgguCd", defaultSgguCd);
 		model.addAttribute("nonpayBaseDate", nonpayQueryService.activeBaseDate().orElse(null));
 		model.addAttribute("hiraNonpayUrl", nonpayUiProperties.hiraNonpayUrl());
+		model.addAttribute("detailBaseDate", hospitalDetailService.activeBaseDate().orElse(null));
 		return "index";
 	}
 
